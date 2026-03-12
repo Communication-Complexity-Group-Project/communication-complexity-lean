@@ -6,8 +6,8 @@ This is equivalent to `DetProtocol` up to complexity (see `det_protocol_generali
 where sending a `β`-valued message costs `⌈log₂ |β|⌉` bits. -/
 inductive DetProtocolGeneralized (X Y α : Type*) where
   | output (val : α) : DetProtocolGeneralized X Y α
-  | alice {β : Type*} [Fintype β] [DecidableEq β] (f : X → β) (P : β → DetProtocolGeneralized X Y α) : DetProtocolGeneralized X Y α
-  | bob {β : Type*} [Fintype β] [DecidableEq β] (f : Y → β) (P : β → DetProtocolGeneralized X Y α) : DetProtocolGeneralized X Y α
+  | alice {β : Type*} [Fintype β] [DecidableEq β] [Nonempty β] (f : X → β) (P : β → DetProtocolGeneralized X Y α) : DetProtocolGeneralized X Y α
+  | bob {β : Type*} [Fintype β] [DecidableEq β] [Nonempty β] (f : Y → β) (P : β → DetProtocolGeneralized X Y α) : DetProtocolGeneralized X Y α
 
 namespace DetProtocolGeneralized
 
@@ -85,12 +85,14 @@ private theorem completeTreeAlice_complexity (d : ℕ) (query : Fin d → X → 
 /-- Given a function `f : X → β` and binary protocols `Q b` for each `b : β`, constructs
 a single binary protocol that simulates choosing `Q (f x)` using `⌈log₂ |β|⌉` alice bits
 via a complete binary tree encoding. -/
-private theorem encode_alice [Inhabited α] [Fintype β] (f : X → β)
+private theorem encode_alice [Fintype β] [Nonempty β] (f : X → β)
     (Q : β → DetProtocol X Y α) :
     ∃ R : DetProtocol X Y α,
       (∀ x y, R.run x y = (Q (f x)).run x y) ∧
       R.complexity = Nat.clog 2 (Fintype.card β) +
         Finset.univ.sup (fun b => (Q b).complexity) := by
+  have hcard : 0 < Fintype.card β := Fintype.card_pos
+  let b₀ : β := (Fintype.equivFin β).symm ⟨0, hcard⟩
   let d := Nat.clog 2 (Fintype.card β)
   -- Binary encoding: β → (Fin d → Bool) via Fintype.equivFin then testBit
   let encode : β → (Fin d → Bool) := fun b =>
@@ -113,7 +115,7 @@ private theorem encode_alice [Inhabited α] [Fintype β] (f : X → β)
   let leafQ : (Fin d → Bool) → DetProtocol X Y α :=
     fun bits => if h : ∃ b, encode b = bits then
       Q (Fintype.choose (fun b => encode b = bits) (hencode_unique bits h))
-    else DetProtocol.output default
+    else Q b₀
   refine ⟨completeTreeAlice d query leafQ, ?_, ?_⟩
   · -- run correctness
     intro x y
@@ -133,8 +135,8 @@ private theorem encode_alice [Inhabited α] [Fintype β] (f : X → β)
       by_cases h : ∃ b, encode b = bits
       · simp only [leafQ, h, dite_true]
         exact Finset.le_sup (f := fun b => (Q b).complexity) (Finset.mem_univ _)
-      · simp only [leafQ, h, dite_false, DetProtocol.complexity]
-        exact Nat.zero_le _
+      · simp only [leafQ, h, dite_false]
+        exact Finset.le_sup (f := fun b => (Q b).complexity) (Finset.mem_univ _)
     · apply Finset.sup_le; intro b _
       have hleafQ : leafQ (encode b) = Q b := by
         have hexb : ∃ b', encode b' = encode b := ⟨b, rfl⟩
@@ -150,17 +152,17 @@ private theorem encode_alice [Inhabited α] [Fintype β] (f : X → β)
 /-- Every generalized protocol can be simulated by a binary protocol with the same
 complexity. The key idea is to encode each `β`-valued message as `⌈log₂ |β|⌉` bits
 using a complete binary tree of depth `⌈log₂ |β|⌉`. -/
-theorem det_protocol_generalized_to_det_protocol [Inhabited α] (p : DetProtocolGeneralized X Y α) : ∃ (P : DetProtocol X Y α), P.run = p.run ∧ P.complexity = p.complexity := by
+theorem det_protocol_generalized_to_det_protocol (p : DetProtocolGeneralized X Y α) : ∃ (P : DetProtocol X Y α), P.run = p.run ∧ P.complexity = p.complexity := by
   induction p with
   | output val => exact ⟨DetProtocol.output val, rfl, rfl⟩
-  | @alice β _ _ f P ih =>
+  | @alice β _ _ _ f P ih =>
     -- Use encode_alice with the IH-provided binary protocols
     choose Q hQ_run hQ_comp using ih
     obtain ⟨R, hR_run, hR_comp⟩ := encode_alice f Q
     exact ⟨R,
       funext fun x => funext fun y => by rw [hR_run, hQ_run, DetProtocolGeneralized.run],
       by rw [hR_comp]; simp [DetProtocolGeneralized.complexity, hQ_comp]⟩
-  | @bob β _ _ f P ih =>
+  | @bob β _ _ _ f P ih =>
     -- Reduce to the alice case: swap the IH protocols, apply encode_alice on Y X α,
     -- then swap the result back.
     choose Q hQ_run hQ_comp using ih
