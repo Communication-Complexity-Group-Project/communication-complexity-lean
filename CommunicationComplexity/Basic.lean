@@ -9,8 +9,8 @@ noncomputable def deterministic_communication_complexity {X Y α} (f : X → Y �
   sInf { n | ∃ p : DetProtocol X Y α, p.computes f ∧ p.complexity ≤ n }
 
 noncomputable def randomized_communication_complexity {X Y α} (f : X → Y → α) (ε : ℝ) : ℕ :=
-  sInf { n | ∃ (Ω_X Ω_Y : Type*) (mX : MeasureSpace Ω_X) (mY : MeasureSpace Ω_Y)
-    (_ : @MeasureTheory.IsProbabilityMeasure Ω_X mX.toMeasurableSpace mX.volume)
-    (_ : @MeasureTheory.IsProbabilityMeasure Ω_Y mY.toMeasurableSpace mY.volume)
-    (p : @RandProtocol Ω_X Ω_Y mX mY _ _ X Y α),
+  sInf { n | ∃ (Ω_X Ω_Y : Type*) (_ : MeasureSpace Ω_X) (_ : MeasureSpace Ω_Y)
+    (_ : IsProbabilityMeasure (volume : Measure Ω_X))
+    (_ : IsProbabilityMeasure (volume : Measure Ω_Y))
+    (p : RandProtocol Ω_X Ω_Y X Y α),
     p.approx_computes f ε ∧ p.complexity ≤ n }
