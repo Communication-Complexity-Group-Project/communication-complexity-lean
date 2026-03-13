@@ -37,38 +37,43 @@ theorem le_det_cc_iff {X Y α} (f : X → Y → α) (n : ℕ) :
   · intro h p hp; exact_mod_cast h p hp
   · intro h p hp; exact_mod_cast h p hp
 
-noncomputable def randomized_communication_complexity.{u₁, u₂} {X Y α} (f : X → Y → α) (ε : ℝ) : WithTop ℕ :=
-  ⨅ (Ω_X : Type u₁) (Ω_Y : Type u₂) (_ : MeasureSpace Ω_X) (_ : MeasureSpace Ω_Y)
+noncomputable def randomized_communication_complexity {X Y α} (f : X → Y → α) (ε : ℝ) : WithTop ℕ :=
+  ⨅ (Ω_X : Type) (Ω_Y : Type) (_ : Fintype Ω_X) (_ : Fintype Ω_Y)
+    (_ : MeasureSpace Ω_X) (_ : MeasureSpace Ω_Y)
     (_ : IsProbabilityMeasure (volume : Measure Ω_X))
     (_ : IsProbabilityMeasure (volume : Measure Ω_Y))
     (p : RandProtocol Ω_X Ω_Y X Y α) (_ : p.approx_computes f ε),
     (p.complexity : WithTop ℕ)
 
-theorem rand_cc_le_iff.{u₁, u₂} {X Y α} (f : X → Y → α) (ε : ℝ) (n : ℕ) :
-    randomized_communication_complexity.{u₁, u₂} f ε ≤ n ↔
-      ∃ (Ω_X : Type u₁) (Ω_Y : Type u₂) (_ : MeasureSpace Ω_X) (_ : MeasureSpace Ω_Y)
+theorem rand_cc_le_iff {X Y α} (f : X → Y → α) (ε : ℝ) (n : ℕ) :
+    randomized_communication_complexity f ε ≤ n ↔
+      ∃ (Ω_X Ω_Y : Type) (_ : Fintype Ω_X) (_ : Fintype Ω_Y)
+        (_ : MeasureSpace Ω_X) (_ : MeasureSpace Ω_Y)
         (_ : IsProbabilityMeasure (volume : Measure Ω_X))
         (_ : IsProbabilityMeasure (volume : Measure Ω_Y))
         (p : RandProtocol Ω_X Ω_Y X Y α),
         p.approx_computes f ε ∧ p.complexity ≤ n := by
   simp [randomized_communication_complexity]
 
-theorem le_rand_cc_iff.{u₁, u₂} {X Y α} (f : X → Y → α) (ε : ℝ) (n : ℕ) :
-    (n : WithTop ℕ) ≤ randomized_communication_complexity.{u₁, u₂} f ε ↔
-      ∀ (Ω_X : Type u₁) (Ω_Y : Type u₂) [MeasureSpace Ω_X] [MeasureSpace Ω_Y]
+theorem le_rand_cc_iff {X Y α} (f : X → Y → α) (ε : ℝ) (n : ℕ) :
+    (n : WithTop ℕ) ≤ randomized_communication_complexity f ε ↔
+      ∀ (Ω_X Ω_Y : Type) [Fintype Ω_X] [Fintype Ω_Y]
+        [MeasureSpace Ω_X] [MeasureSpace Ω_Y]
         [IsProbabilityMeasure (volume : Measure Ω_X)]
         [IsProbabilityMeasure (volume : Measure Ω_Y)]
         (p : RandProtocol Ω_X Ω_Y X Y α),
         p.approx_computes f ε → n ≤ p.complexity := by
   unfold randomized_communication_complexity
   constructor
-  · intro h Ω_X Ω_Y msX msY ipX ipY p hp
-    have := h.trans (iInf_le_of_le Ω_X (iInf_le_of_le Ω_Y (iInf_le_of_le msX (iInf_le_of_le msY
-      (iInf_le_of_le ipX (iInf_le_of_le ipY (iInf_le_of_le p (iInf_le_of_le hp le_rfl))))))))
+  · intro h Ω_X Ω_Y ftX ftY msX msY ipX ipY p hp
+    have := h.trans (iInf_le_of_le Ω_X (iInf_le_of_le Ω_Y (iInf_le_of_le ftX (iInf_le_of_le ftY
+      (iInf_le_of_le msX (iInf_le_of_le msY (iInf_le_of_le ipX (iInf_le_of_le ipY
+        (iInf_le_of_le p (iInf_le_of_le hp le_rfl))))))))))
     exact_mod_cast this
   · intro h
     apply le_iInf; intro Ω_X; apply le_iInf; intro Ω_Y
+    apply le_iInf; intro ftX; apply le_iInf; intro ftY
     apply le_iInf; intro msX; apply le_iInf; intro msY
     apply le_iInf; intro ipX; apply le_iInf; intro ipY
     apply le_iInf; intro p; apply le_iInf; intro hp
-    exact_mod_cast @h Ω_X Ω_Y msX msY ipX ipY p hp
+    exact_mod_cast @h Ω_X Ω_Y ftX ftY msX msY ipX ipY p hp
