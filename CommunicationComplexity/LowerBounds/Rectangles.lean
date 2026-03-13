@@ -1,9 +1,9 @@
 import CommunicationComplexity.Det.Basic
+import Mathlib.Data.Set.Basic
+import Mathlib.Data.Set.Card
+import Mathlib.Order.Defs.PartialOrder
 
 namespace DetProtocol
-
-/-This file for basic facts about protocols rather than basic definitions?
-Unsure what the best structure is-/
 
 variable {X Y α : Type*}
 
