@@ -20,6 +20,8 @@ inductive DetProtocolGeneralized (X Y α : Type*) where
 
 namespace DetProtocolGeneralized
 
+variable {X Y α : Type*}
+
 /-- Executes the generalized protocol on inputs `x` and `y`. -/
 def run (p : DetProtocolGeneralized X Y α) (x : X) (y : Y) : α :=
   match p with

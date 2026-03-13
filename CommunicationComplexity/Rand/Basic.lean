@@ -46,6 +46,29 @@ def complexity : RandProtocol Ω_X Ω_Y X Y α → ℕ
   | RandProtocol.alice _ _ P => 1 + max (P false).complexity (P true).complexity
   | RandProtocol.bob _ _ P => 1 + max (P false).complexity (P true).complexity
 
+/-- Swaps the roles of Alice and Bob, producing a protocol on `Y × X` from one on `X × Y`.
+Alice nodes become bob nodes and vice versa; the randomness spaces are also swapped. -/
+def swap : RandProtocol Ω_X Ω_Y X Y α → RandProtocol Ω_Y Ω_X Y X α
+  | RandProtocol.output a => RandProtocol.output a
+  | RandProtocol.alice f hf P => RandProtocol.bob f hf (fun b => (P b).swap)
+  | RandProtocol.bob f hf P => RandProtocol.alice f hf (fun b => (P b).swap)
+
+@[simp]
+theorem swap_run (p : RandProtocol Ω_X Ω_Y X Y α) (x : X) (y : Y) (ω_x : Ω_X) (ω_y : Ω_Y) :
+    p.swap.run y x ω_y ω_x = p.run x y ω_x ω_y := by
+  induction p with
+  | output a => simp [swap, run]
+  | alice f hf P ih => simp [swap, run, ih]
+  | bob f hf P ih => simp [swap, run, ih]
+
+@[simp]
+theorem swap_complexity (p : RandProtocol Ω_X Ω_Y X Y α) :
+    p.swap.complexity = p.complexity := by
+  induction p with
+  | output a => simp [swap, complexity]
+  | alice f hf P ih => simp [swap, complexity, ih]
+  | bob f hf P ih => simp [swap, complexity, ih]
+
 /-- The preimage of any set under the protocol's output is measurable in the product
 probability space, which is needed to make sense of error probabilities. -/
 theorem measurable_preimage_run
