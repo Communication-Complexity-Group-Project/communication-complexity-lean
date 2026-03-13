@@ -4,7 +4,6 @@ import Mathlib.Tactic.Common
 Bob holds input `y : Y`, and the protocol computes a value of type `α`.
 At each step, either Alice or Bob sends a single bit based on their input,
 and the protocol branches accordingly. -/
-
 inductive DetProtocol (X Y α : Type*) where
   | output (val : α) : DetProtocol X Y α
   | alice (f : X → Bool) (P : Bool → DetProtocol X Y α) : DetProtocol X Y α
