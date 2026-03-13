@@ -1,6 +1,6 @@
 # CommunicationComplexity
 
-A Lean 4 formalization of communication complexity theory, following Rao–Yehudayoff Chapter 1.
+A Lean 4 formalization of communication complexity theory.
 
 ## Viewing the blueprint
 
@@ -36,3 +36,7 @@ To deploy the blueprint via GitHub Actions, follow these one-time setup steps:
 * Check the box **Allow GitHub Actions to create and approve pull requests**.
 * Click the **Pages** section of the settings sidebar.
 * In the **Source** dropdown menu, select "GitHub Actions".
+
+# References
+
+*Communication Complexity and Applications* by Anup Rao and Amir Yehudayoff
