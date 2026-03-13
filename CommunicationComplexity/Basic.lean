@@ -32,17 +32,15 @@ deterministic protocol computing `f` with complexity at most `n`. -/
 theorem det_cc_le_iff {X Y α} (f : X → Y → α) (n : ℕ) :
     deterministic_communication_complexity f ≤ n ↔
       ∃ p : DetProtocol X Y α, p.computes f ∧ p.complexity ≤ n := by
-  simp [deterministic_communication_complexity]
+  simp only [deterministic_communication_complexity, WithTop.iInf_le_coe_iff, Nat.cast_le,
+    exists_prop]
 
 /-- The deterministic communication complexity of `f` is at least `n` iff every deterministic
 protocol computing `f` has complexity at least `n`. -/
 theorem le_det_cc_iff {X Y α} (f : X → Y → α) (n : ℕ) :
     (n : WithTop ℕ) ≤ deterministic_communication_complexity f ↔
       ∀ p : DetProtocol X Y α, p.computes f → n ≤ p.complexity := by
-  simp only [deterministic_communication_complexity, le_iInf_iff]
-  constructor
-  · intro h p hp; exact_mod_cast h p hp
-  · intro h p hp; exact_mod_cast h p hp
+  simp only [deterministic_communication_complexity, le_iInf_iff, Nat.cast_le]
 
 /-- The `ε`-error randomized communication complexity of a function `f : X → Y → α`, defined as
 the minimum worst-case number of bits exchanged over all randomized protocols that compute `f`
@@ -67,7 +65,8 @@ theorem rand_cc_le_iff {X Y α} (f : X → Y → α) (ε : ℝ) (n : ℕ) :
         (_ : IsProbabilityMeasure (volume : Measure Ω_Y))
         (p : RandProtocol Ω_X Ω_Y X Y α),
         p.approx_computes f ε ∧ p.complexity ≤ n := by
-  simp [randomized_communication_complexity]
+  simp only [randomized_communication_complexity, WithTop.iInf_le_coe_iff, Nat.cast_le, exists_prop,
+    exists_const_iff, exists_and_left]
 
 /-- The randomized communication complexity of `f` at error `ε` is at least `n` iff every
 randomized protocol that `ε`-computes `f` (over any finite probability spaces) has complexity
@@ -81,19 +80,7 @@ theorem le_rand_cc_iff {X Y α} (f : X → Y → α) (ε : ℝ) (n : ℕ) :
         (p : RandProtocol Ω_X Ω_Y X Y α),
         p.approx_computes f ε → n ≤ p.complexity := by
   unfold randomized_communication_complexity
-  constructor
-  · intro h Ω_X Ω_Y ftX ftY msX msY ipX ipY p hp
-    have := h.trans (iInf_le_of_le Ω_X (iInf_le_of_le Ω_Y (iInf_le_of_le ftX (iInf_le_of_le ftY
-      (iInf_le_of_le msX (iInf_le_of_le msY (iInf_le_of_le ipX (iInf_le_of_le ipY
-        (iInf_le_of_le p (iInf_le_of_le hp le_rfl))))))))))
-    exact_mod_cast this
-  · intro h
-    apply le_iInf; intro Ω_X; apply le_iInf; intro Ω_Y
-    apply le_iInf; intro ftX; apply le_iInf; intro ftY
-    apply le_iInf; intro msX; apply le_iInf; intro msY
-    apply le_iInf; intro ipX; apply le_iInf; intro ipY
-    apply le_iInf; intro p; apply le_iInf; intro hp
-    exact_mod_cast @h Ω_X Ω_Y ftX ftY msX msY ipX ipY p hp
+  simp only [le_iInf_iff, Nat.cast_le]
 
 /-- Convert a deterministic protocol to a randomized protocol with trivial (Unit) probability spaces.
 The randomized protocol ignores its randomness and behaves identically to the deterministic one. -/
