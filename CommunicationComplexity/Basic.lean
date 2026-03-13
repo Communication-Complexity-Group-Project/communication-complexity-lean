@@ -1,6 +1,7 @@
 import CommunicationComplexity.Det.Basic
 import CommunicationComplexity.Det.Generalized
 import CommunicationComplexity.Rand.Basic
+import CommunicationComplexity.Rand.Generalized
 import Mathlib.MeasureTheory.Measure.Dirac
 
 open MeasureTheory
@@ -82,6 +83,21 @@ theorem rand_cc_le_iff {X Y α} (f : X → Y → α) (ε : ℝ) (n : ℕ) :
   simp only [randomized_communication_complexity, WithTop.iInf_le_coe_iff, Nat.cast_le, exists_prop,
     exists_const_iff, exists_and_left]
 
+set_option linter.unusedFintypeInType false in
+/-- Helper: to show rand CC ≤ n, provide a randomized protocol that ε-computes `f`
+with complexity ≤ n. Typeclass arguments are inferred automatically. -/
+theorem rand_cc_le_of_protocol {X Y α} {f : X → Y → α} {ε : ℝ} {n : ℕ}
+    {Ω_X Ω_Y : Type} [Fintype Ω_X] [Fintype Ω_Y]
+    [MeasureSpace Ω_X] [MeasureSpace Ω_Y]
+    [IsProbabilityMeasure (volume : Measure Ω_X)]
+    [IsProbabilityMeasure (volume : Measure Ω_Y)]
+    (p : RandProtocol Ω_X Ω_Y X Y α)
+    (hp : p.approx_computes f ε) (hc : p.complexity ≤ n) :
+    randomized_communication_complexity f ε ≤ n :=
+  (rand_cc_le_iff f ε n).mpr
+    ⟨Ω_X, Ω_Y, inferInstance, inferInstance, inferInstance, inferInstance,
+     inferInstance, inferInstance, p, hp, hc⟩
+
 /-- The randomized communication complexity of `f` at error `ε` is at least `n` iff every
 randomized protocol that `ε`-computes `f` (over any finite probability spaces) has complexity
 at least `n`. -/
@@ -96,6 +112,58 @@ theorem le_rand_cc_iff {X Y α} (f : X → Y → α) (ε : ℝ) (n : ℕ) :
   unfold randomized_communication_complexity
   simp only [le_iInf_iff, Nat.cast_le]
 
+/-- The randomized communication complexity of `f` at error `ε` is at most `n` iff there exist
+finite probability spaces and a generalized randomized protocol that `ε`-computes `f` with
+complexity at most `n`. -/
+theorem rand_cc_le_iff_generalized {X Y α} (f : X → Y → α) (ε : ℝ) (n : ℕ) :
+    randomized_communication_complexity f ε ≤ n ↔
+      ∃ (Ω_X Ω_Y : Type) (_ : Fintype Ω_X) (_ : Fintype Ω_Y)
+        (_ : MeasureSpace Ω_X) (_ : MeasureSpace Ω_Y)
+        (_ : IsProbabilityMeasure (volume : Measure Ω_X))
+        (_ : IsProbabilityMeasure (volume : Measure Ω_Y))
+        (p : RandProtocolGeneralized Ω_X Ω_Y X Y α),
+        (∀ x y, (volume {ω : Ω_X × Ω_Y | p.run x y ω.1 ω.2 ≠ f x y}).toReal ≤ ε) ∧
+        p.complexity ≤ n := by
+  rw [rand_cc_le_iff]
+  constructor
+  · -- Binary protocol → generalized protocol
+    rintro ⟨Ω_X, Ω_Y, hfX, hfY, msX, msY, hpX, hpY, p, hp, hc⟩
+    obtain ⟨P, hP_run, hP_comp⟩ := RandProtocolGeneralized.rand_protocol_to_rand_protocol_generalized p
+    refine ⟨Ω_X, Ω_Y, hfX, hfY, msX, msY, hpX, hpY, P, ?_, hP_comp ▸ hc⟩
+    intro x y
+    -- P.run = p.run, so the error sets are the same
+    have : ∀ ω_x ω_y, P.run x y ω_x ω_y = p.run x y ω_x ω_y := by
+      rw [hP_run]
+      simp only [implies_true]
+    simp_rw [this]
+    exact hp x y
+  · -- Generalized protocol → binary protocol
+    rintro ⟨Ω_X, Ω_Y, hfX, hfY, msX, msY, hpX, hpY, p, hp, hc⟩
+    obtain ⟨P, hP_run, hP_comp⟩ := RandProtocolGeneralized.rand_protocol_generalized_to_rand_protocol p
+    refine ⟨Ω_X, Ω_Y, hfX, hfY, msX, msY, hpX, hpY, P, ?_, hP_comp ▸ hc⟩
+    intro x y
+    have : ∀ ω_x ω_y, P.run x y ω_x ω_y = p.run x y ω_x ω_y := by
+      rw [hP_run]
+      simp only [implies_true]
+    simp_rw [this]
+    exact hp x y
+
+set_option linter.unusedFintypeInType false in
+/-- Helper: to show rand CC ≤ n, provide a generalized randomized protocol that ε-computes `f`
+with complexity ≤ n. Typeclass arguments are inferred automatically. -/
+theorem rand_cc_le_of_generalized_protocol {X Y α} {f : X → Y → α} {ε : ℝ} {n : ℕ}
+    {Ω_X Ω_Y : Type} [Fintype Ω_X] [Fintype Ω_Y]
+    [MeasureSpace Ω_X] [MeasureSpace Ω_Y]
+    [IsProbabilityMeasure (volume : Measure Ω_X)]
+    [IsProbabilityMeasure (volume : Measure Ω_Y)]
+    (p : RandProtocolGeneralized Ω_X Ω_Y X Y α)
+    (hp : ∀ x y, (volume {ω : Ω_X × Ω_Y | p.run x y ω.1 ω.2 ≠ f x y}).toReal ≤ ε)
+    (hc : p.complexity ≤ n) :
+    randomized_communication_complexity f ε ≤ n :=
+  (rand_cc_le_iff_generalized f ε n).mpr
+    ⟨Ω_X, Ω_Y, inferInstance, inferInstance, inferInstance, inferInstance,
+     inferInstance, inferInstance, p, hp, hc⟩
+
 /-- Convert a deterministic protocol to a randomized protocol with trivial (Unit) probability spaces.
 The randomized protocol ignores its randomness and behaves identically to the deterministic one. -/
 -- Unit with Dirac measure as a probability space, used for embedding det protocols into rand
@@ -104,20 +172,20 @@ private instance unitIsProbabilityMeasure : IsProbabilityMeasure (volume : Measu
   ⟨by simp [unitMeasureSpace, Measure.dirac_apply_of_mem (Set.mem_univ ())]⟩
 
 /-- Convert a deterministic protocol to a randomized protocol over Unit probability spaces. -/
-private def DetProtocol.toRand (p : DetProtocol X Y α) : RandProtocol Unit Unit X Y α :=
+private def DetProtocol.toRand {X Y α} (p : DetProtocol X Y α) : RandProtocol Unit Unit X Y α :=
   match p with
   | DetProtocol.output val => RandProtocol.output val
   | DetProtocol.alice f P => RandProtocol.alice (fun x _ => f x) (fun _ => measurable_const) (fun b => (P b).toRand)
   | DetProtocol.bob f P => RandProtocol.bob (fun y _ => f y) (fun _ => measurable_const) (fun b => (P b).toRand)
 
-private theorem DetProtocol.toRand_run (p : DetProtocol X Y α) (x : X) (y : Y) (ω_x : Unit) (ω_y : Unit) :
+private theorem DetProtocol.toRand_run {X Y α} (p : DetProtocol X Y α) (x : X) (y : Y) (ω_x : Unit) (ω_y : Unit) :
     p.toRand.run x y ω_x ω_y = p.run x y := by
   induction p with
   | output val => simp [DetProtocol.toRand, RandProtocol.run, DetProtocol.run]
   | alice f P ih => simp [DetProtocol.toRand, RandProtocol.run, DetProtocol.run, ih]
   | bob f P ih => simp [DetProtocol.toRand, RandProtocol.run, DetProtocol.run, ih]
 
-private theorem DetProtocol.toRand_complexity (p : DetProtocol X Y α) :
+private theorem DetProtocol.toRand_complexity {X Y α} (p : DetProtocol X Y α) :
     p.toRand.complexity = p.complexity := by
   induction p with
   | output val => simp [DetProtocol.toRand, RandProtocol.complexity, DetProtocol.complexity]
