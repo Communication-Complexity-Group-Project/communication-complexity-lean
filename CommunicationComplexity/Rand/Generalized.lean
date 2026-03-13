@@ -41,8 +41,10 @@ variable {Ω_X Ω_Y X Y α : Type*}
     [IsProbabilityMeasure (volume : Measure Ω_X)]
     [IsProbabilityMeasure (volume : Measure Ω_Y)]
 
-/-- Executes the generalized randomized protocol on inputs `x`, `y` with random coins `ω_x`, `ω_y`. -/
-def run (p : RandProtocolGeneralized Ω_X Ω_Y X Y α) (x : X) (y : Y) (ω_x : Ω_X) (ω_y : Ω_Y) : α :=
+/-- Executes the generalized randomized protocol on inputs `x`, `y`
+with random coins `ω_x`, `ω_y`. -/
+def run (p : RandProtocolGeneralized Ω_X Ω_Y X Y α)
+    (x : X) (y : Y) (ω_x : Ω_X) (ω_y : Ω_Y) : α :=
   match p with
   | output a => a
   | alice f _ P => (P (f x ω_x)).run x y ω_x ω_y
@@ -52,8 +54,12 @@ def run (p : RandProtocolGeneralized Ω_X Ω_Y X Y α) (x : X) (y : Y) (ω_x : �
 message costs `⌈log₂ |β|⌉` bits. -/
 def complexity : RandProtocolGeneralized Ω_X Ω_Y X Y α → ℕ
   | output _ => 0
-  | alice (β := β) _ _ P => (Nat.clog 2 (Fintype.card β)) + Finset.univ.sup (fun i => (P i).complexity)
-  | bob (β := β) _ _ P => (Nat.clog 2 (Fintype.card β)) + Finset.univ.sup (fun i => (P i).complexity)
+  | alice (β := β) _ _ P =>
+      Nat.clog 2 (Fintype.card β) +
+        Finset.univ.sup (fun i => (P i).complexity)
+  | bob (β := β) _ _ P =>
+      Nat.clog 2 (Fintype.card β) +
+        Finset.univ.sup (fun i => (P i).complexity)
 
 /-- Embed a binary randomized protocol into a generalized randomized protocol
 (with `β = Bool` at each step). -/
@@ -62,7 +68,8 @@ def ofRandProtocol : RandProtocol Ω_X Ω_Y X Y α → RandProtocolGeneralized �
   | RandProtocol.alice f hf P => alice f hf (fun b => ofRandProtocol (P b))
   | RandProtocol.bob f hf P => bob f hf (fun b => ofRandProtocol (P b))
 
-theorem ofRandProtocol_run (p : RandProtocol Ω_X Ω_Y X Y α) (x : X) (y : Y) (ω_x : Ω_X) (ω_y : Ω_Y) :
+theorem ofRandProtocol_run (p : RandProtocol Ω_X Ω_Y X Y α)
+    (x : X) (y : Y) (ω_x : Ω_X) (ω_y : Ω_Y) :
     (ofRandProtocol p).run x y ω_x ω_y = p.run x y ω_x ω_y := by
   induction p with
   | output a => simp [ofRandProtocol, run, RandProtocol.run]
@@ -94,8 +101,9 @@ private def completeTreeAlice (d : ℕ) (query : Fin d → X → Ω_X → Bool)
     (Q : (Fin d → Bool) → RandProtocol Ω_X Ω_Y X Y α) : RandProtocol Ω_X Ω_Y X Y α :=
   match d with
   | 0 => Q Fin.elim0
-  | d + 1 => RandProtocol.alice (query 0) (hquery 0) (fun b =>
-      completeTreeAlice d (query ∘ Fin.succ) (fun i => hquery i.succ) (fun bits => Q (Fin.cons b bits)))
+  | d + 1 => RandProtocol.alice (query 0) (hquery 0) fun b =>
+      completeTreeAlice d (query ∘ Fin.succ)
+        (fun i => hquery i.succ) (fun bits => Q (Fin.cons b bits))
 
 private theorem completeTreeAlice_run (d : ℕ) (query : Fin d → X → Ω_X → Bool)
     (hquery : ∀ i x, Measurable (query i x))
@@ -109,7 +117,9 @@ private theorem completeTreeAlice_run (d : ℕ) (query : Fin d → X → Ω_X �
   | succ d ih =>
     simp only [completeTreeAlice, RandProtocol.run]
     rw [ih]
-    have : Fin.cons (query 0 x ω_x) (fun i => (query ∘ Fin.succ) i x ω_x) = fun i => query i x ω_x := by
+    have : Fin.cons (query 0 x ω_x)
+        (fun i => (query ∘ Fin.succ) i x ω_x) =
+        fun i => query i x ω_x := by
       ext i; refine Fin.cases ?_ ?_ i
       · simp [Fin.cons]
       · intro j; simp [Fin.cons, Function.comp]
@@ -138,10 +148,16 @@ private theorem completeTreeAlice_complexity (d : ℕ) (query : Fin d → X → 
             (Finset.univ.sup (fun bits : Fin d → Bool => (Q (Fin.cons true bits)).complexity)) := by
       have hdec : (Finset.univ : Finset (Fin (d + 1) → Bool)) =
           (Finset.univ.image (Fin.cons false)) ∪ (Finset.univ.image (Fin.cons true)) := by
-        ext bits; simp only [Finset.mem_univ, Finset.mem_union, Finset.mem_image, true_and, true_iff]
+        ext bits
+        simp only [Finset.mem_univ, Finset.mem_union,
+          Finset.mem_image, true_and, true_iff]
         by_cases h : bits 0 = true
-        · right; exact ⟨Fin.tail bits, by ext i; simp only [Fin.cons]; refine Fin.cases ?_ ?_ i <;> simp [Fin.tail, h]⟩
-        · left; exact ⟨Fin.tail bits, by ext i; refine Fin.cases ?_ ?_ i <;> simp [Fin.cons, Fin.tail, Bool.eq_false_iff.mpr h]⟩
+        · right; exact ⟨Fin.tail bits, by
+            ext i; simp only [Fin.cons]
+            refine Fin.cases ?_ ?_ i <;> simp [Fin.tail, h]⟩
+        · left; exact ⟨Fin.tail bits, by
+            ext i; refine Fin.cases ?_ ?_ i <;>
+              simp [Fin.cons, Fin.tail, Bool.eq_false_iff.mpr h]⟩
       rw [hdec, Finset.sup_union, Finset.sup_image, Finset.sup_image]; rfl
     linarith [hsplit]
 
@@ -168,8 +184,12 @@ private theorem encode_alice [Fintype β] [Nonempty β]
     by_cases hi : i < d
     · exact congr_fun hab ⟨i, hi⟩
     · have hd : Fintype.card β ≤ 2 ^ d := Nat.le_pow_clog (by norm_num) _
-      rw [Nat.testBit_eq_false_of_lt (lt_of_lt_of_le (Fintype.equivFin β a).isLt (hd.trans (Nat.pow_le_pow_right (by norm_num) (not_lt.mp hi)))),
-          Nat.testBit_eq_false_of_lt (lt_of_lt_of_le (Fintype.equivFin β b).isLt (hd.trans (Nat.pow_le_pow_right (by norm_num) (not_lt.mp hi))))]
+      have hle := hd.trans
+        (Nat.pow_le_pow_right (by norm_num) (not_lt.mp hi))
+      rw [Nat.testBit_eq_false_of_lt
+            (lt_of_lt_of_le (Fintype.equivFin β a).isLt hle),
+          Nat.testBit_eq_false_of_lt
+            (lt_of_lt_of_le (Fintype.equivFin β b).isLt hle)]
   have hencode_unique : ∀ bits, (∃ b, encode b = bits) → ∃! b, encode b = bits := by
     intro bits ⟨b, hb⟩; exact ⟨b, hb, fun c hc => hencode_inj (hc.trans hb.symm)⟩
   let query : Fin d → X → Ω_X → Bool := fun i x ω_x => encode (f x ω_x) i
@@ -188,7 +208,9 @@ private theorem encode_alice [Fintype β] [Nonempty β]
     rw [hquery_eq]
     have hexists : ∃ b, encode b = encode (f x ω_x) := ⟨f x ω_x, rfl⟩
     simp only [leafQ, hexists, dite_true]
-    have hch := Fintype.choose_spec (fun b => encode b = encode (f x ω_x)) (hencode_unique _ hexists)
+    have hch := Fintype.choose_spec
+      (fun b => encode b = encode (f x ω_x))
+      (hencode_unique _ hexists)
     rw [hencode_inj hch]
   · -- complexity
     rw [completeTreeAlice_complexity]
@@ -224,7 +246,7 @@ theorem rand_protocol_generalized_to_rand_protocol (p : RandProtocolGeneralized 
     choose Q hQ_run hQ_comp using ih
     obtain ⟨R, hR_run, hR_comp⟩ := encode_alice f hf Q
     exact ⟨R,
-      funext fun x => funext fun y => funext fun ω_x => funext fun ω_y => by
+      funext₂ fun x y => funext₂ fun ω_x ω_y => by
         rw [hR_run, hQ_run, RandProtocolGeneralized.run],
       by rw [hR_comp]; simp [RandProtocolGeneralized.complexity, hQ_comp]⟩
   | @bob β _ _ _ _ f hf P ih =>
@@ -233,7 +255,7 @@ theorem rand_protocol_generalized_to_rand_protocol (p : RandProtocolGeneralized 
     choose Q hQ_run hQ_comp using ih
     obtain ⟨R, hR_run, hR_comp⟩ := encode_alice f hf (fun b => (Q b).swap)
     exact ⟨R.swap,
-      funext fun x => funext fun y => funext fun ω_x => funext fun ω_y => by
+      funext₂ fun x y => funext₂ fun ω_x ω_y => by
         simp [RandProtocolGeneralized.run, RandProtocol.swap_run, hR_run, hQ_run],
       by simp [RandProtocolGeneralized.complexity, RandProtocol.swap_complexity, hR_comp,
                RandProtocol.swap_complexity, hQ_comp]⟩
@@ -244,8 +266,7 @@ theorem rand_protocol_to_rand_protocol_generalized (p : RandProtocol Ω_X Ω_Y X
     ∃ (P : RandProtocolGeneralized Ω_X Ω_Y X Y α),
       P.run = p.run ∧ P.complexity = p.complexity :=
   ⟨ofRandProtocol p,
-   funext fun x => funext fun y => funext fun ω_x => funext fun ω_y =>
-     ofRandProtocol_run p x y ω_x ω_y,
+   funext₂ fun x y => funext₂ fun ω_x ω_y => ofRandProtocol_run p x y ω_x ω_y,
    ofRandProtocol_complexity p⟩
 
 end RandProtocolGeneralized
