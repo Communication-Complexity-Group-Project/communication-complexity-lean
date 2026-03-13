@@ -128,25 +128,17 @@ theorem rand_cc_le_iff_generalized {X Y α} (f : X → Y → α) (ε : ℝ) (n :
   constructor
   · -- Binary protocol → generalized protocol
     rintro ⟨Ω_X, Ω_Y, hfX, hfY, msX, msY, hpX, hpY, p, hp, hc⟩
-    obtain ⟨P, hP_run, hP_comp⟩ := RandProtocolGeneralized.rand_protocol_to_rand_protocol_generalized p
-    refine ⟨Ω_X, Ω_Y, hfX, hfY, msX, msY, hpX, hpY, P, ?_, hP_comp ▸ hc⟩
-    intro x y
-    -- P.run = p.run, so the error sets are the same
-    have : ∀ ω_x ω_y, P.run x y ω_x ω_y = p.run x y ω_x ω_y := by
-      rw [hP_run]
-      simp only [implies_true]
-    simp_rw [this]
-    exact hp x y
+    obtain ⟨P, hP_run, hP_comp⟩ :=
+      RandProtocolGeneralized.rand_protocol_to_rand_protocol_generalized p
+    refine ⟨Ω_X, Ω_Y, hfX, hfY, msX, msY, hpX, hpY,
+      P, ?_, hP_comp ▸ hc⟩
+    intro x y; simp_rw [hP_run]; exact hp x y
   · -- Generalized protocol → binary protocol
     rintro ⟨Ω_X, Ω_Y, hfX, hfY, msX, msY, hpX, hpY, p, hp, hc⟩
-    obtain ⟨P, hP_run, hP_comp⟩ := RandProtocolGeneralized.rand_protocol_generalized_to_rand_protocol p
+    obtain ⟨P, hP_run, hP_comp⟩ :=
+      RandProtocolGeneralized.rand_protocol_generalized_to_rand_protocol p
     refine ⟨Ω_X, Ω_Y, hfX, hfY, msX, msY, hpX, hpY, P, ?_, hP_comp ▸ hc⟩
-    intro x y
-    have : ∀ ω_x ω_y, P.run x y ω_x ω_y = p.run x y ω_x ω_y := by
-      rw [hP_run]
-      simp only [implies_true]
-    simp_rw [this]
-    exact hp x y
+    intro x y; simp_rw [hP_run]; exact hp x y
 
 set_option linter.unusedFintypeInType false in
 /-- Helper: to show rand CC ≤ n, provide a generalized randomized protocol that ε-computes `f`
@@ -164,8 +156,9 @@ theorem rand_cc_le_of_generalized_protocol {X Y α} {f : X → Y → α} {ε : �
     ⟨Ω_X, Ω_Y, inferInstance, inferInstance, inferInstance, inferInstance,
      inferInstance, inferInstance, p, hp, hc⟩
 
-/-- Convert a deterministic protocol to a randomized protocol with trivial (Unit) probability spaces.
-The randomized protocol ignores its randomness and behaves identically to the deterministic one. -/
+/-- Convert a deterministic protocol to a randomized protocol with
+trivial (Unit) probability spaces. The randomized protocol ignores
+its randomness and behaves identically to the deterministic one. -/
 -- Unit with Dirac measure as a probability space, used for embedding det protocols into rand
 private noncomputable instance unitMeasureSpace : MeasureSpace Unit := ⟨Measure.dirac ()⟩
 private instance unitIsProbabilityMeasure : IsProbabilityMeasure (volume : Measure Unit) :=
@@ -175,10 +168,16 @@ private instance unitIsProbabilityMeasure : IsProbabilityMeasure (volume : Measu
 private def DetProtocol.toRand {X Y α} (p : DetProtocol X Y α) : RandProtocol Unit Unit X Y α :=
   match p with
   | DetProtocol.output val => RandProtocol.output val
-  | DetProtocol.alice f P => RandProtocol.alice (fun x _ => f x) (fun _ => measurable_const) (fun b => (P b).toRand)
-  | DetProtocol.bob f P => RandProtocol.bob (fun y _ => f y) (fun _ => measurable_const) (fun b => (P b).toRand)
+  | DetProtocol.alice f P =>
+      RandProtocol.alice (fun x _ => f x)
+        (fun _ => measurable_const) (fun b => (P b).toRand)
+  | DetProtocol.bob f P =>
+      RandProtocol.bob (fun y _ => f y)
+        (fun _ => measurable_const) (fun b => (P b).toRand)
 
-private theorem DetProtocol.toRand_run {X Y α} (p : DetProtocol X Y α) (x : X) (y : Y) (ω_x : Unit) (ω_y : Unit) :
+private theorem DetProtocol.toRand_run {X Y α}
+    (p : DetProtocol X Y α) (x : X) (y : Y)
+    (ω_x : Unit) (ω_y : Unit) :
     p.toRand.run x y ω_x ω_y = p.run x y := by
   induction p with
   | output val => simp [DetProtocol.toRand, RandProtocol.run, DetProtocol.run]

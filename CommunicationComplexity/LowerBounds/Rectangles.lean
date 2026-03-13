@@ -48,14 +48,10 @@ private lemma aux_isRectangle (p : DetProtocol X Y α) (A : Set X) (B : Set Y)
     exact ⟨A, B, hR⟩
   | alice f P ih =>
     simp only [leafRectanglesAux, Set.mem_union] at hR
-    rcases hR with h | h
-    · exact ih false _ _ h
-    · exact ih true  _ _ h
+    rcases hR with h | h <;> exact ih _ _ _ h
   | bob f P ih =>
     simp only [leafRectanglesAux, Set.mem_union] at hR
-    rcases hR with h | h
-    · exact ih false _ _ h
-    · exact ih true  _ _ h
+    rcases hR with h | h <;> exact ih _ _ _ h
 
 lemma leafRectangles_isRectangle (p : DetProtocol X Y α)
     (R : Set (X × Y)) (hR : R ∈ leafRectangles p) : isRectangle R :=
@@ -69,14 +65,12 @@ private lemma aux_subset (p : DetProtocol X Y α) (A : Set X) (B : Set Y)
     subst hR; exact le_refl _
   | alice f P ih =>
     simp only [leafRectanglesAux, Set.mem_union] at hR
-    rcases hR with h | h
-    · exact (ih false _ _ h).trans (by intro ⟨x, y⟩ ⟨hx, hy⟩; exact ⟨hx.1, hy⟩)
-    · exact (ih true  _ _ h).trans (by intro ⟨x, y⟩ ⟨hx, hy⟩; exact ⟨hx.1, hy⟩)
+    rcases hR with h | h <;>
+      exact (ih _ _ _ h).trans (by intro ⟨x, y⟩ ⟨hx, hy⟩; exact ⟨hx.1, hy⟩)
   | bob f P ih =>
     simp only [leafRectanglesAux, Set.mem_union] at hR
-    rcases hR with h | h
-    · exact (ih false _ _ h).trans (by intro ⟨x, y⟩ ⟨hx, hy⟩; exact ⟨hx, hy.1⟩)
-    · exact (ih true  _ _ h).trans (by intro ⟨x, y⟩ ⟨hx, hy⟩; exact ⟨hx, hy.1⟩)
+    rcases hR with h | h <;>
+      exact (ih _ _ _ h).trans (by intro ⟨x, y⟩ ⟨hx, hy⟩; exact ⟨hx, hy.1⟩)
 
 private lemma aux_cover (p : DetProtocol X Y α) (A : Set X) (B : Set Y) :
     A ×ˢ B ⊆ ⋃₀ leafRectanglesAux p A B := by
@@ -178,11 +172,9 @@ lemma leafRectangles_mono (p : DetProtocol X Y α)
     (g : X → Y → α) (h_comp : computes p g)
     (R : Set (X × Y)) (hR : R ∈ leafRectangles p) : isMono R g := by
   intro x x' y y' hxy hxy'
-  have : p.run x y = p.run x' y' :=
-    aux_mono p Set.univ Set.univ R hR x x' y y' hxy hxy'
-  simp only [computes] at h_comp
-  rw [← congr_fun (congr_fun h_comp x) y, ← congr_fun (congr_fun h_comp x') y']
-  exact this
+  have := aux_mono p Set.univ Set.univ R hR x x' y y' hxy hxy'
+  simp only [computes, funext_iff] at h_comp
+  rw [← h_comp x y, ← h_comp x' y']; exact this
 
 
 private lemma aux_card (p : DetProtocol X Y α) (A : Set X) (B : Set Y) :

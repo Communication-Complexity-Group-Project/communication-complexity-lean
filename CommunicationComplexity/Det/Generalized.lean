@@ -15,8 +15,12 @@ Equivalent to `DetProtocol` up to complexity (see `det_protocol_generalized_to_d
 where sending a `β`-valued message costs `⌈log₂ |β|⌉` bits. -/
 inductive DetProtocolGeneralized (X Y α : Type*) where
   | output (val : α) : DetProtocolGeneralized X Y α
-  | alice {β : Type} [Fintype β] [Nonempty β] (f : X → β) (P : β → DetProtocolGeneralized X Y α) : DetProtocolGeneralized X Y α
-  | bob {β : Type} [Fintype β] [Nonempty β] (f : Y → β) (P : β → DetProtocolGeneralized X Y α) : DetProtocolGeneralized X Y α
+  | alice {β : Type} [Fintype β] [Nonempty β]
+      (f : X → β) (P : β → DetProtocolGeneralized X Y α) :
+      DetProtocolGeneralized X Y α
+  | bob {β : Type} [Fintype β] [Nonempty β]
+      (f : Y → β) (P : β → DetProtocolGeneralized X Y α) :
+      DetProtocolGeneralized X Y α
 
 namespace DetProtocolGeneralized
 
@@ -33,8 +37,12 @@ def run (p : DetProtocolGeneralized X Y α) (x : X) (y : Y) : α :=
 costs `⌈log₂ |β|⌉` bits, reflecting the number of bits needed to encode an element of `β`. -/
 def complexity : DetProtocolGeneralized X Y α → ℕ
   | DetProtocolGeneralized.output _ => 0
-  | DetProtocolGeneralized.alice (β := β) _ P => (Nat.clog 2 (Fintype.card β)) + Finset.univ.sup (fun i => (P i).complexity)
-  | DetProtocolGeneralized.bob (β := β) _ P => (Nat.clog 2 (Fintype.card β)) + Finset.univ.sup (fun i => (P i).complexity)
+  | DetProtocolGeneralized.alice (β := β) _ P =>
+      Nat.clog 2 (Fintype.card β) +
+        Finset.univ.sup (fun i => (P i).complexity)
+  | DetProtocolGeneralized.bob (β := β) _ P =>
+      Nat.clog 2 (Fintype.card β) +
+        Finset.univ.sup (fun i => (P i).complexity)
 
 
 private def completeTreeAlice (d : ℕ) (query : Fin d → X → Bool)
@@ -86,10 +94,16 @@ private theorem completeTreeAlice_complexity (d : ℕ) (query : Fin d → X → 
             (Finset.univ.sup (fun bits : Fin d → Bool => (Q (Fin.cons true bits)).complexity)) := by
       have hdec : (Finset.univ : Finset (Fin (d + 1) → Bool)) =
           (Finset.univ.image (Fin.cons false)) ∪ (Finset.univ.image (Fin.cons true)) := by
-        ext bits; simp only [Finset.mem_univ, Finset.mem_union, Finset.mem_image, true_and, true_iff]
+        ext bits
+        simp only [Finset.mem_univ, Finset.mem_union,
+          Finset.mem_image, true_and, true_iff]
         by_cases h : bits 0 = true
-        · right; exact ⟨Fin.tail bits, by ext i; simp only [Fin.cons]; refine Fin.cases ?_ ?_ i <;> simp [Fin.tail, h]⟩
-        · left; exact ⟨Fin.tail bits, by ext i; refine Fin.cases ?_ ?_ i <;> simp [Fin.cons, Fin.tail, Bool.eq_false_iff.mpr h]⟩
+        · right; exact ⟨Fin.tail bits, by
+            ext i; simp only [Fin.cons]
+            refine Fin.cases ?_ ?_ i <;> simp [Fin.tail, h]⟩
+        · left; exact ⟨Fin.tail bits, by
+            ext i; refine Fin.cases ?_ ?_ i <;>
+              simp [Fin.cons, Fin.tail, Bool.eq_false_iff.mpr h]⟩
       rw [hdec, Finset.sup_union, Finset.sup_image, Finset.sup_image]; rfl
     linarith [hsplit]
 
@@ -115,8 +129,12 @@ private theorem encode_alice [Fintype β] [Nonempty β] (f : X → β)
     by_cases hi : i < d
     · exact congr_fun hab ⟨i, hi⟩
     · have hd : Fintype.card β ≤ 2 ^ d := Nat.le_pow_clog (by norm_num) _
-      rw [Nat.testBit_eq_false_of_lt (lt_of_lt_of_le (Fintype.equivFin β a).isLt (hd.trans (Nat.pow_le_pow_right (by norm_num) (not_lt.mp hi)))),
-          Nat.testBit_eq_false_of_lt (lt_of_lt_of_le (Fintype.equivFin β b).isLt (hd.trans (Nat.pow_le_pow_right (by norm_num) (not_lt.mp hi))))]
+      have hle := hd.trans
+        (Nat.pow_le_pow_right (by norm_num) (not_lt.mp hi))
+      rw [Nat.testBit_eq_false_of_lt
+            (lt_of_lt_of_le (Fintype.equivFin β a).isLt hle),
+          Nat.testBit_eq_false_of_lt
+            (lt_of_lt_of_le (Fintype.equivFin β b).isLt hle)]
   -- Upgrade ∃ to ∃! using injectivity, for use with Fintype.choose
   have hencode_unique : ∀ bits, (∃ b, encode b = bits) → ∃! b, encode b = bits := by
     intro bits ⟨b, hb⟩; exact ⟨b, hb, fun c hc => hencode_inj (hc.trans hb.symm)⟩
@@ -163,7 +181,10 @@ private theorem encode_alice [Fintype β] [Nonempty β] (f : X → β)
 /-- Every generalized protocol can be simulated by a binary protocol with the same
 complexity. The key idea is to encode each `β`-valued message as `⌈log₂ |β|⌉` bits
 using a complete binary tree of depth `⌈log₂ |β|⌉`. -/
-theorem det_protocol_generalized_to_det_protocol (p : DetProtocolGeneralized X Y α) : ∃ (P : DetProtocol X Y α), P.run = p.run ∧ P.complexity = p.complexity := by
+theorem det_protocol_generalized_to_det_protocol
+    (p : DetProtocolGeneralized X Y α) :
+    ∃ (P : DetProtocol X Y α),
+      P.run = p.run ∧ P.complexity = p.complexity := by
   induction p with
   | output val => exact ⟨DetProtocol.output val, rfl, rfl⟩
   | @alice β _ _ f P ih =>
@@ -171,7 +192,7 @@ theorem det_protocol_generalized_to_det_protocol (p : DetProtocolGeneralized X Y
     choose Q hQ_run hQ_comp using ih
     obtain ⟨R, hR_run, hR_comp⟩ := encode_alice f Q
     exact ⟨R,
-      funext fun x => funext fun y => by rw [hR_run, hQ_run, DetProtocolGeneralized.run],
+      funext₂ fun x y => by rw [hR_run, hQ_run, DetProtocolGeneralized.run],
       by rw [hR_comp]; simp [DetProtocolGeneralized.complexity, hQ_comp]⟩
   | @bob β _ _ f P ih =>
     -- Reduce to the alice case: swap the IH protocols, apply encode_alice on Y X α,
@@ -179,7 +200,7 @@ theorem det_protocol_generalized_to_det_protocol (p : DetProtocolGeneralized X Y
     choose Q hQ_run hQ_comp using ih
     obtain ⟨R, hR_run, hR_comp⟩ := encode_alice f (fun b => (Q b).swap)
     exact ⟨R.swap,
-      funext fun x => funext fun y => by
+      funext₂ fun x y => by
         simp [DetProtocolGeneralized.run, DetProtocol.swap_run, hR_run, hQ_run],
       by simp [DetProtocolGeneralized.complexity, DetProtocol.swap_complexity, hR_comp,
                DetProtocol.swap_complexity, hQ_comp]⟩
@@ -220,6 +241,6 @@ theorem ofDetProtocol_complexity (p : DetProtocol X Y α) :
 run behavior and complexity (using `β = Bool` at each step). -/
 theorem det_protocol_to_det_protocol_generalized (p : DetProtocol X Y α) :
     ∃ (P : DetProtocolGeneralized X Y α), P.run = p.run ∧ P.complexity = p.complexity :=
-  ⟨ofDetProtocol p, funext fun x => funext fun y => ofDetProtocol_run p x y, ofDetProtocol_complexity p⟩
+  ⟨ofDetProtocol p, funext₂ (ofDetProtocol_run p), ofDetProtocol_complexity p⟩
 
 end DetProtocolGeneralized
