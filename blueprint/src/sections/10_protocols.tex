@@ -1,0 +1,124 @@
+\chapter{Deterministic Communication Complexity}
+
+\section{Protocols}
+
+\begin{definition}[Deterministic protocol]
+  \label{def:det_protocol}
+  \lean{DetProtocol}
+  \leanok
+  A \emph{deterministic two-party communication protocol} over input sets $X$, $Y$
+  and output type $\alpha$ is an inductive tree whose internal nodes are labelled
+  by either Alice (with a function $X \to \{0,1\}$) or Bob (with a function
+  $Y \to \{0,1\}$), and whose leaves carry output values in $\alpha$.
+  At each internal node the corresponding party sends the bit determined by their
+  input, and the protocol recurses into the corresponding subtree.
+\end{definition}
+
+\begin{definition}[Protocol run and complexity]
+  \label{def:protocol_run}
+  \lean{DetProtocol.run}\leanok
+  \lean{DetProtocol.complexity}\leanok
+  \uses{def:det_protocol}
+  The \emph{run} of a protocol $p$ on inputs $(x, y)$ is the output value at the
+  leaf reached by following Alice's and Bob's bits.
+  The \emph{complexity} of $p$ is the worst-case depth, i.e.\ the maximum number
+  of bits exchanged over all inputs.
+\end{definition}
+
+\begin{definition}[Computes]
+  \label{def:computes}
+  \lean{DetProtocol.computes}
+  \leanok
+  \uses{def:protocol_run}
+  A protocol $p$ \emph{computes} $f : X \to Y \to \alpha$ if $p.\mathrm{run}(x,y)
+  = f(x,y)$ for all inputs $(x,y)$.
+\end{definition}
+
+\begin{definition}[Deterministic communication complexity]
+  \label{def:det_cc}
+  \lean{deterministic_communication_complexity}
+  \leanok
+  \uses{def:det_protocol, def:computes}
+  The \emph{deterministic communication complexity} $\Det(f)$ of a function
+  $f : X \to Y \to \alpha$ is
+  \[
+    \Det(f) \;=\; \inf \bigl\{\, p.\mathrm{complexity} \mid
+      p : \text{DetProtocol}\;X\;Y\;\alpha,\; p.\mathrm{computes}(f) \bigr\}.
+  \]
+  We use $\Det(f) = \top$ to indicate that no finite protocol computes $f$.
+\end{definition}
+
+\begin{lemma}
+  \label{lem:det_cc_le_iff}
+  \lean{det_cc_le_iff}
+  \leanok
+  \uses{def:det_cc}
+  $\Det(f) \le n$ if and only if there exists a protocol $p$ computing $f$ with
+  $p.\mathrm{complexity} \le n$.
+\end{lemma}
+
+\begin{lemma}
+  \label{lem:le_det_cc_iff}
+  \lean{le_det_cc_iff}
+  \leanok
+  \uses{def:det_cc}
+  $n \le \Det(f)$ if and only if every protocol $p$ computing $f$ satisfies
+  $n \le p.\mathrm{complexity}$.
+\end{lemma}
+
+\section{Randomized Protocols}
+
+\begin{definition}[Randomized protocol]
+  \label{def:rand_protocol}
+  \lean{RandProtocol}
+  \leanok
+  A \emph{randomized protocol} is like a deterministic protocol except that
+  Alice and Bob each have access to a private random string drawn from finite
+  probability spaces $\Omega_X$ and $\Omega_Y$ respectively.
+\end{definition}
+
+\begin{definition}[Randomized communication complexity]
+  \label{def:rand_cc}
+  \lean{randomized_communication_complexity}
+  \leanok
+  \uses{def:rand_protocol}
+  The \emph{$\varepsilon$-error randomized communication complexity} $\Rand_\varepsilon(f)$
+  is the infimum of the complexity of all randomized protocols that compute $f$
+  with error probability at most $\varepsilon$ on every input.
+\end{definition}
+
+\begin{theorem}
+  \label{thm:rand_le_det}
+  \lean{rand_cc_le_det_cc}
+  \leanok
+  \uses{def:rand_cc, def:det_cc}
+  For any $\varepsilon \ge 0$, $\Rand_\varepsilon(f) \le \Det(f)$.
+  Every deterministic protocol can be viewed as a randomized protocol that
+  ignores its random coins and achieves error $0 \le \varepsilon$.
+\end{theorem}
+
+\section{Upper Bounds}
+
+\begin{theorem}
+  \label{thm:det_cc_le_clog}
+  \lean{det_cc_le_clog_card}
+  \leanok
+  \uses{def:det_cc}
+  For finite types $X$ and $Y$,
+  \[
+    \Det(f) \;\le\; \lceil \log_2 |X| \rceil + \lceil \log_2 |Y| \rceil.
+  \]
+  Alice sends her entire input, then Bob sends his.
+\end{theorem}
+
+\begin{theorem}
+  \label{thm:det_cc_le_clog_X_alpha}
+  \lean{det_cc_le_clog_card_X_alpha}
+  \leanok
+  \uses{def:det_cc}
+  For finite $X$ and $\alpha$,
+  \[
+    \Det(f) \;\le\; \lceil \log_2 |X| \rceil + \lceil \log_2 |\alpha| \rceil.
+  \]
+  Alice sends her input; Bob computes and sends the output value.
+\end{theorem}

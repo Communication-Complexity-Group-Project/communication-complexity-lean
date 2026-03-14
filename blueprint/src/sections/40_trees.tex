@@ -1,0 +1,40 @@
+\chapter{Protocol Trees and Balanced Subtrees}
+
+\section{Binary Trees}
+
+\begin{lemma}[Lemma 1.8: balanced subtree]
+  \label{lem:balanced_subtree}
+  \lean{Tree.balanced_subtree}
+  \leanok
+  Every binary tree $T$ with $\ell > 1$ leaves has a subtree $S$ satisfying
+  \[
+    \frac{\ell}{3} \;\le\; |S| \;<\; \frac{2\ell}{3},
+  \]
+  where $|S|$ denotes the number of leaves of $S$.
+\end{lemma}
+
+\section{Protocol Shape}
+
+\begin{definition}[Protocol shape and leaf count]
+  \label{def:protocol_shape}
+  \lean{DetProtocol.shape}
+  \lean{DetProtocol.numLeaves}
+  \leanok
+  \uses{def:det_protocol}
+  The \emph{shape} of a protocol $\pi$ is the underlying binary tree (ignoring
+  Alice/Bob labels and functions).  The \emph{leaf count} $\mathrm{numLeaves}(\pi)$
+  is the number of leaves of this tree.
+\end{definition}
+
+\begin{theorem}[Theorem 1.7: complexity vs.\ leaf count]
+  \label{thm:complexity_log_leaves}
+  \lean{complexity_le_two_log_numLeaves}
+  \uses{lem:balanced_subtree, def:protocol_shape, thm:rect_partition}
+  For any protocol $\pi$ there exists a protocol $\pi'$ computing the same
+  function with
+  \[
+    3^{c'} \;\le\; 2^{c'} \cdot \mathrm{numLeaves}(\pi)^2,
+  \]
+  where $c' = \pi'.\mathrm{complexity}$.
+  Equivalently, $c' \le 2\log_{3/2}(\mathrm{numLeaves}(\pi))$.
+\end{theorem}

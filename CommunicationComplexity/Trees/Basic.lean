@@ -10,6 +10,9 @@ def shape : DetProtocol X Y α → Tree Unit
 | alice _ P => .node () (shape (P false)) (shape (P true))
 | bob   _ P => .node () (shape (P false)) (shape (P true))
 
+def numLeaves : DetProtocol X Y α → ℕ :=
+  fun p ↦ p.shape.numLeaves
+
 end DetProtocol
 
 namespace Tree

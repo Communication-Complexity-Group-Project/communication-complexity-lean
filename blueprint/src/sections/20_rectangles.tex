@@ -1,0 +1,85 @@
+\chapter{The Rectangle Method}
+
+\section{Rectangles and Partitions}
+
+\begin{definition}[Rectangle]
+  \label{def:rectangle}
+  \lean{DetProtocol.isRectangle}
+  \leanok
+  A set $R \subseteq X \times Y$ is a \emph{combinatorial rectangle} if
+  $R = A \times B$ for some $A \subseteq X$ and $B \subseteq Y$.
+  Equivalently, whenever $(x,y),(x',y') \in R$ we also have $(x',y),(x,y') \in R$.
+\end{definition}
+
+\begin{lemma}[Rectangle characterization]
+  \label{lem:rectangle_iff}
+  \lean{DetProtocol.isRectangle_iff}
+  \leanok
+  \uses{def:rectangle}
+  $R$ is a rectangle if and only if for all $(x,y),(x',y') \in R$,
+  the mixed pairs $(x',y)$ and $(x,y')$ also belong to $R$.
+\end{lemma}
+
+\begin{definition}[Monochromatic rectangle partition]
+  \label{def:mono_rect_partition}
+  \lean{DetProtocol.isMonoRectPartition}
+  \leanok
+  \uses{def:rectangle}
+  A collection $\mathcal{P}$ of subsets of $X \times Y$ is a
+  \emph{monochromatic rectangle partition} for $g : X \to Y \to \alpha$ if:
+  every $R \in \mathcal{P}$ is a rectangle, every $R \in \mathcal{P}$ is
+  $g$-monochromatic (all pairs in $R$ have the same $g$-value), $\mathcal{P}$
+  covers $X \times Y$, and distinct members of $\mathcal{P}$ are disjoint.
+\end{definition}
+
+\begin{definition}[Leaf rectangles]
+  \label{def:leaf_rectangles}
+  \lean{DetProtocol.leafRectangles}
+  \leanok
+  \uses{def:det_protocol, def:rectangle}
+  The \emph{leaf rectangles} of a protocol $\pi$ are the sets of inputs that
+  reach each leaf of the protocol tree.  Each leaf rectangle is a combinatorial
+  rectangle obtained by intersecting the half-spaces cut by each bit sent along
+  the path to that leaf.
+\end{definition}
+
+\begin{lemma}[Lemma 1.4: leaf rectangles partition the input space]
+  \label{lem:leaf_partition}
+  \lean{DetProtocol.leafRectangles_cover}
+  \lean{DetProtocol.leafRectangles_disjoint}
+  \lean{DetProtocol.leafRectangles_isRectangle}
+  \leanok
+  \uses{def:leaf_rectangles, def:mono_rect_partition}
+  For any protocol $\pi$, the leaf rectangles of $\pi$ form a partition of
+  $X \times Y$ into combinatorial rectangles.
+  Moreover, if $\pi$ computes $g$, each leaf rectangle is $g$-monochromatic.
+\end{lemma}
+
+\begin{lemma}
+  \label{lem:leaf_card}
+  \lean{DetProtocol.leafRectangles_card}
+  \leanok
+  \uses{def:leaf_rectangles, def:protocol_run}
+  A protocol of complexity $c$ has at most $2^c$ leaf rectangles.
+\end{lemma}
+
+\begin{theorem}[Theorem 1.6: rectangle partition bound]
+  \label{thm:rect_partition}
+  \lean{DetProtocol.rectangle_partition}
+  \lean{DetProtocol.mono_rectangle_partition_of_det_cc}
+  \leanok
+  \uses{lem:leaf_partition, lem:leaf_card, def:mono_rect_partition}
+  If $\pi$ computes $g$ and has complexity $c$, then the input space $X \times Y$
+  can be partitioned into at most $2^c$ monochromatic rectangles with respect to $g$.
+  Equivalently, if $\Det(g) \le n$ then there is a monochromatic rectangle
+  partition of size at most $2^n$.
+\end{theorem}
+
+\begin{theorem}[Rectangle lower bound method]
+  \label{thm:rect_lower_bound}
+  \lean{DetProtocol.det_cc_lower_bound}
+  \leanok
+  \uses{thm:rect_partition, def:det_cc}
+  To show $\Det(g) \ge n+1$, it suffices to show that every monochromatic
+  rectangle partition of $g$ has more than $2^n$ members.
+\end{theorem}
