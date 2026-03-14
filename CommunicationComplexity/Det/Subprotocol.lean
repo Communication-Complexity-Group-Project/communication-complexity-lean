@@ -1,5 +1,5 @@
-import CommunicationComplexity.LowerBounds.Rectangles
 import CommunicationComplexity.Trees.Basic
+import Mathlib.Data.Set.Basic
 
 namespace DetProtocol
 
@@ -13,6 +13,7 @@ inductive IsSubprotocol : DetProtocol X Y α → DetProtocol X Y α → Prop whe
 | bob_false   : ∀ f P s, IsSubprotocol s (P false) → IsSubprotocol s (DetProtocol.bob f P)
 | bob_true    : ∀ f P s, IsSubprotocol s (P true)  → IsSubprotocol s (DetProtocol.bob f P)
 
+/-- Transitivity of subprotocol embeddings. -/
 lemma IsSubprotocol.trans
     {s t u : DetProtocol X Y α}
     (h1 : IsSubprotocol s t) (h2 : IsSubprotocol t u) : IsSubprotocol s u := by
@@ -43,7 +44,8 @@ private lemma balanced_aux (p : DetProtocol X Y α) (n : ℕ) (hn : 1 < n)
         omega
       · have hchild : 3 * (P false).numLeaves ≥ 2 * n := by omega
         obtain ⟨s, hs, hs1, hs2⟩ := ih false hchild
-        exact ⟨s, hs.trans (IsSubprotocol.alice_false f P (P false) (IsSubprotocol.refl _)), hs1, hs2⟩
+        exact ⟨s,
+          hs.trans (IsSubprotocol.alice_false f P (P false) (IsSubprotocol.refl _)), hs1, hs2⟩
     · by_cases hlt : 3 * (P true).numLeaves < 2 * n
       · refine ⟨P true, IsSubprotocol.alice_true f P (P true) (IsSubprotocol.refl _), ?_, hlt⟩
         omega
@@ -70,7 +72,8 @@ private lemma balanced_aux (p : DetProtocol X Y α) (n : ℕ) (hn : 1 < n)
         obtain ⟨s, hs, hs1, hs2⟩ := ih true hchild
         exact ⟨s, hs.trans (IsSubprotocol.bob_true f P (P true) (IsSubprotocol.refl _)), hs1, hs2⟩
 
-/-- Protocol-level version of Lemma 1.8. -/
+/-- Protocol-level version of R&Y Lemma 1.8: if a protocol has more than 1 leaf there is a
+subprotocol with a reasonable number of leaves. -/
 theorem balanced_subprotocol (p : DetProtocol X Y α) (hn : 1 < p.numLeaves) :
     ∃ s : DetProtocol X Y α,
       IsSubprotocol s p ∧ 3 * s.numLeaves ≥ p.numLeaves ∧
@@ -87,15 +90,18 @@ theorem balanced_subprotocol (p : DetProtocol X Y α) (hn : 1 < p.numLeaves) :
     by_cases hcmp : (P false).numLeaves ≥ (P true).numLeaves
     · by_cases hlt : 3 * (P false).numLeaves < 2 * ((P false).numLeaves + (P true).numLeaves)
       · refine ⟨P false, IsSubprotocol.alice_false f P (P false) (IsSubprotocol.refl _), ?_, ?_⟩
-        · simpa [hsum] using (show 3 * (P false).numLeaves ≥ (P false).numLeaves + (P true).numLeaves by omega)
+        · simpa [hsum] using
+            (show 3 * (P false).numLeaves ≥ (P false).numLeaves + (P true).numLeaves by omega)
         · simpa [hsum] using hlt
       · obtain ⟨s, hs, hs1, hs2⟩ :=
           balanced_aux (P false) ((P false).numLeaves + (P true).numLeaves) hn' (by omega)
-        refine ⟨s, hs.trans (IsSubprotocol.alice_false f P (P false) (IsSubprotocol.refl _)), hs1, ?_⟩
+        refine ⟨s, hs.trans (IsSubprotocol.alice_false f P (P false) (IsSubprotocol.refl _)),
+          hs1, ?_⟩
         simpa [hsum] using hs2
     · by_cases hlt : 3 * (P true).numLeaves < 2 * ((P false).numLeaves + (P true).numLeaves)
       · refine ⟨P true, IsSubprotocol.alice_true f P (P true) (IsSubprotocol.refl _), ?_, ?_⟩
-        · simpa [hsum] using (show 3 * (P true).numLeaves ≥ (P false).numLeaves + (P true).numLeaves by omega)
+        · simpa [hsum] using
+            (show 3 * (P true).numLeaves ≥ (P false).numLeaves + (P true).numLeaves by omega)
         · simpa [hsum] using hlt
       · obtain ⟨s, hs, hs1, hs2⟩ :=
           balanced_aux (P true) ((P false).numLeaves + (P true).numLeaves) hn' (by omega)
@@ -110,7 +116,8 @@ theorem balanced_subprotocol (p : DetProtocol X Y α) (hn : 1 < p.numLeaves) :
     by_cases hcmp : (P false).numLeaves ≥ (P true).numLeaves
     · by_cases hlt : 3 * (P false).numLeaves < 2 * ((P false).numLeaves + (P true).numLeaves)
       · refine ⟨P false, IsSubprotocol.bob_false f P (P false) (IsSubprotocol.refl _), ?_, ?_⟩
-        · simpa [hsum] using (show 3 * (P false).numLeaves ≥ (P false).numLeaves + (P true).numLeaves by omega)
+        · simpa [hsum] using
+            (show 3 * (P false).numLeaves ≥ (P false).numLeaves + (P true).numLeaves by omega)
         · simpa [hsum] using hlt
       · obtain ⟨s, hs, hs1, hs2⟩ :=
           balanced_aux (P false) ((P false).numLeaves + (P true).numLeaves) hn' (by omega)
@@ -118,14 +125,17 @@ theorem balanced_subprotocol (p : DetProtocol X Y α) (hn : 1 < p.numLeaves) :
         simpa [hsum] using hs2
     · by_cases hlt : 3 * (P true).numLeaves < 2 * ((P false).numLeaves + (P true).numLeaves)
       · refine ⟨P true, IsSubprotocol.bob_true f P (P true) (IsSubprotocol.refl _), ?_, ?_⟩
-        · simpa [hsum] using (show 3 * (P true).numLeaves ≥ (P false).numLeaves + (P true).numLeaves by omega)
+        · simpa [hsum] using
+            (show 3 * (P true).numLeaves ≥ (P false).numLeaves + (P true).numLeaves by omega)
         · simpa [hsum] using hlt
       · obtain ⟨s, hs, hs1, hs2⟩ :=
           balanced_aux (P true) ((P false).numLeaves + (P true).numLeaves) hn' (by omega)
         refine ⟨s, hs.trans (IsSubprotocol.bob_true f P (P true) (IsSubprotocol.refl _)), hs1, ?_⟩
         simpa [hsum] using hs2
 
-/-- Type-valued witness for a subtree embedding, used for data-carrying recursion. -/
+/-- Type-valued witness for a subtree embedding, used for data-carrying recursion. It is a
+witness that `s` is a subprotocol of `p` containing the choices from the root of `p` to the
+root of `s`. -/
 inductive SubprotocolPath : DetProtocol X Y α → DetProtocol X Y α → Type _ where
 | refl : ∀ p, SubprotocolPath p p
 | alice_false : ∀ f P s, SubprotocolPath s (P false) → SubprotocolPath s (DetProtocol.alice f P)
@@ -133,6 +143,7 @@ inductive SubprotocolPath : DetProtocol X Y α → DetProtocol X Y α → Type _
 | bob_false   : ∀ f P s, SubprotocolPath s (P false) → SubprotocolPath s (DetProtocol.bob f P)
 | bob_true    : ∀ f P s, SubprotocolPath s (P true)  → SubprotocolPath s (DetProtocol.bob f P)
 
+/-- Every `SubprotocolPath` induces an `IsSubprotocol` proof. -/
 def SubprotocolPath.toIsSubprotocol {s p : DetProtocol X Y α} :
     SubprotocolPath s p → IsSubprotocol s p
   | .refl p => IsSubprotocol.refl p
@@ -141,6 +152,8 @@ def SubprotocolPath.toIsSubprotocol {s p : DetProtocol X Y α} :
   | .bob_false f P s hs => IsSubprotocol.bob_false f P s (hs.toIsSubprotocol)
   | .bob_true f P s hs => IsSubprotocol.bob_true f P s (hs.toIsSubprotocol)
 
+/-- If `s` is a subprotocol of `p`, then there is a path from the root of `p` to the
+root of `s`. -/
 theorem path_exists_of_isSubprotocol {s p : DetProtocol X Y α}
     (hsp : IsSubprotocol s p) : Nonempty (SubprotocolPath s p) := by
   induction hsp with
@@ -158,10 +171,13 @@ theorem path_exists_of_isSubprotocol {s p : DetProtocol X Y α}
     rcases ih with ⟨t⟩
     exact ⟨SubprotocolPath.bob_true f P s t⟩
 
+/-- Classical choice of a witness (a `SubprotocolPath`) from a proof that
+something is a  `Subprotocol`. -/
 noncomputable def choosePath {s p : DetProtocol X Y α}
     (hsp : IsSubprotocol s p) : SubprotocolPath s p :=
   Classical.choice (path_exists_of_isSubprotocol hsp)
 
+/-- A `SubprotocolPath` won't have any more leaves than its parent. -/
 lemma SubprotocolPath.numLeaves_le {s p : DetProtocol X Y α}
     (hsp : SubprotocolPath s p) : s.numLeaves ≤ p.numLeaves := by
   induction hsp with
@@ -202,18 +218,26 @@ def reachYPath {s p : DetProtocol X Y α} (hsp : SubprotocolPath s p) : Set Y :=
   | SubprotocolPath.bob_false f P s hs => reachYPath hs ∩ {y | f y = false}
   | SubprotocolPath.bob_true f P s hs => reachYPath hs ∩ {y | f y = true}
 
+/-- A `Prop` which states that inputs `x : X` and  `y : Y` will get you to a particular
+`SubprotocolPath` of `p`. -/
 def reachesPath {s p : DetProtocol X Y α} (hsp : SubprotocolPath s p) (x : X) (y : Y) : Prop :=
   x ∈ reachXPath hsp ∧ y ∈ reachYPath hsp
 
+/-- The set of Alice's inputs that reach *any* subprotocol path to the given subprotocol. -/
 def reachX {s p : DetProtocol X Y α} (hsp : IsSubprotocol s p) : Set X :=
   reachXPath (choosePath hsp)
 
+/-- The set of Bob's inputs that reach *any* subprotocol path to the given subprotocol. -/
 def reachY {s p : DetProtocol X Y α} (hsp : IsSubprotocol s p) : Set Y :=
   reachYPath (choosePath hsp)
 
+/-- A `Prop` which states that on input `x : X` and `y : Y` the protocol `p`
+reaches the subprotocol `s`. -/
 def reaches {s p : DetProtocol X Y α} (hsp : IsSubprotocol s p) (x : X) (y : Y) : Prop :=
   x ∈ reachX hsp ∧ y ∈ reachY hsp
 
+/-- If on input `x,y` the protocol reaches subprotocol*path* `s` of `p`, then running `s` and
+running `p` produce the same output. -/
 lemma subprotocol_run_eq_of_reachesPath
     {s p : DetProtocol X Y α} (hsp : SubprotocolPath s p) {x : X} {y : Y}
     (hxy : reachesPath hsp x y) : p.run x y = s.run x y := by
@@ -237,6 +261,8 @@ lemma subprotocol_run_eq_of_reachesPath
     have hfy : f y = true := hy.2
     simpa [reachesPath, reachXPath, reachYPath, DetProtocol.run, hfy] using ih ⟨hx, hy.1⟩
 
+/-- If on input `x,y` the protocol reaches subprotocol `s` of `p`, then running `s` and
+running `p` produce the same output. -/
 lemma subprotocol_run_eq_of_reaches
     {s p : DetProtocol X Y α} (hsp : IsSubprotocol s p) {x : X} {y : Y}
     (hxy : reaches hsp x y) : p.run x y = s.run x y := by
@@ -249,6 +275,10 @@ def chooseOutput : DetProtocol X Y α → α
   | .alice _ P => chooseOutput (P false)
   | .bob _ P => chooseOutput (P false)
 
+/-- Gives you a protocol which is just `p` with the subprotocol `s` collapsed to a single leaf,
+and the value at that leaf is the leftmost leaf of `s`.
+
+We need subprotocol*path* because we need to find `s`, and that's how we do it. -/
 def erasePath {s p : DetProtocol X Y α} (hsp : SubprotocolPath s p) :
     DetProtocol X Y α :=
   match hsp with
@@ -274,6 +304,8 @@ def erasePath {s p : DetProtocol X Y α} (hsp : SubprotocolPath s p) :
         | false => P false
         | true => erasePath hs)
 
+/-- After we erase `s` from `p`, the resulting protocol has `p.numLeaves - s.numLeaves + 1`
+leaves. -/
 lemma erasePath_numLeaves {s p : DetProtocol X Y α} (hsp : SubprotocolPath s p) :
     (erasePath hsp).numLeaves = p.numLeaves - s.numLeaves + 1 := by
   induction hsp with
@@ -332,6 +364,8 @@ lemma erasePath_numLeaves {s p : DetProtocol X Y α} (hsp : SubprotocolPath s p)
             simp [DetProtocol.numLeaves, DetProtocol.shape]
             omega
 
+/-- If the input doesn't reach a subprotocolpath `s`, then running `p` on that input
+is the same as running `p` with `s` erased. -/
 lemma erasePath_run_outside
     {s p : DetProtocol X Y α} (hsp : SubprotocolPath s p) {x : X} {y : Y}
     (hxy : ¬ reachesPath hsp x y) :
@@ -381,6 +415,7 @@ lemma erasePath_run_outside
         cases h : f y <;> simp_all
       simp [erasePath, DetProtocol.run, hfy']
 
+/-- Subprotocol *not*-path versions of the above. -/
 noncomputable def erase {s p : DetProtocol X Y α} (hsp : IsSubprotocol s p) :
     DetProtocol X Y α :=
   erasePath (choosePath hsp)
@@ -729,167 +764,5 @@ lemma testSubprotocol_run_outside
       exact hxy ⟨hx, hy⟩
     simp [testSubprotocol, DetProtocol.run, hx, hy]
   · simp [testSubprotocol, DetProtocol.run, hx]
-
-private lemma numLeaves_pos (p : DetProtocol X Y α) : 0 < p.numLeaves := by
-  cases p with
-  | output a =>
-    simp [DetProtocol.numLeaves, DetProtocol.shape]
-  | alice f P =>
-    have h : 0 < (P false).numLeaves := numLeaves_pos (P false)
-    have hsum : 0 < (P false).numLeaves + (P true).numLeaves := Nat.add_pos_left h _
-    simpa [DetProtocol.numLeaves, DetProtocol.shape] using hsum
-  | bob f P =>
-    have h : 0 < (P false).numLeaves := numLeaves_pos (P false)
-    have hsum : 0 < (P false).numLeaves + (P true).numLeaves := Nat.add_pos_left h _
-    simpa [DetProtocol.numLeaves, DetProtocol.shape] using hsum
-
-/-- Theorem 1.7 in the experiments file: balanced simulation with 2-bit subtree tests. -/
-theorem theorem_1_7_experiment (p : DetProtocol X Y α) :
-    ∃ q : DetProtocol X Y α, q.run = p.run ∧
-      3 ^ q.complexity ≤ 2 ^ q.complexity * p.numLeaves ^ 2 := by
-  let target : ℕ → Prop := fun n =>
-    ∀ p : DetProtocol X Y α, p.numLeaves = n →
-      ∃ q : DetProtocol X Y α, q.run = p.run ∧
-        3 ^ q.complexity ≤ 2 ^ q.complexity * p.numLeaves ^ 2
-  have htarget : ∀ n, target n := by
-    intro n
-    refine Nat.strongRecOn n ?_
-    intro n ih
-    intro p hpn
-    by_cases hn1 : n = 1
-    · refine ⟨p, rfl, ?_⟩
-      have hleaf1 : p.numLeaves = 1 := by simpa [hn1] using hpn
-      have hcomp0 : p.complexity = 0 := by
-        cases p with
-        | output a => rfl
-        | alice f P =>
-          exfalso
-          have hs : (P false).shape.numLeaves + (P true).shape.numLeaves = 1 := by
-            simpa [DetProtocol.numLeaves, DetProtocol.shape] using hleaf1
-          have hp0 : 0 < (P false).shape.numLeaves := by
-            simpa [DetProtocol.numLeaves] using numLeaves_pos (P false)
-          have hp1 : 0 < (P true).shape.numLeaves := by
-            simpa [DetProtocol.numLeaves] using numLeaves_pos (P true)
-          omega
-        | bob f P =>
-          exfalso
-          have hs : (P false).shape.numLeaves + (P true).shape.numLeaves = 1 := by
-            simpa [DetProtocol.numLeaves, DetProtocol.shape] using hleaf1
-          have hp0 : 0 < (P false).shape.numLeaves := by
-            simpa [DetProtocol.numLeaves] using numLeaves_pos (P false)
-          have hp1 : 0 < (P true).shape.numLeaves := by
-            simpa [DetProtocol.numLeaves] using numLeaves_pos (P true)
-          omega
-      subst hn1
-      simp [hcomp0, hpn]
-    · have hgt1 : 1 < n := by
-        have hnpos : 0 < n := by
-          have hp : 0 < p.numLeaves := numLeaves_pos p
-          simpa [hpn] using hp
-        omega
-      have hgt1p : 1 < p.numLeaves := by simpa [hpn] using hgt1
-      obtain ⟨s, hsp, hbal_lo, hbal_hi⟩ := balanced_subprotocol p hgt1p
-      let m := s.numLeaves
-      have hm_lt_p : m < p.numLeaves := by
-        dsimp [m]
-        omega
-      have hm_lt_n : m < n := by
-        simpa [hpn, m] using hm_lt_p
-      have hm_pos : 0 < m := by
-        dsimp [m]
-        exact numLeaves_pos s
-      have hm_le_n : m ≤ n := hm_lt_n.le
-      have hout_lt_n : n - m < n := by
-        omega
-      obtain ⟨qIn, hRunIn, hBoundIn⟩ := ih m hm_lt_n s rfl
-      let pOut := prune hsp hm_lt_p
-      have hpOut_leaves : pOut.numLeaves = n - m := by
-        dsimp [pOut, m]
-        simpa [hpn] using prune_numLeaves_of_lt hsp hm_lt_p
-      obtain ⟨qOut, hRunOut, hBoundOut⟩ := ih (n - m) hout_lt_n pOut hpOut_leaves
-      let q := testSubprotocol hsp qIn qOut
-      refine ⟨q, ?_, ?_⟩
-      · ext x y
-        by_cases hxy : reaches hsp x y
-        · calc
-            q.run x y = qIn.run x y := by
-              simpa [q] using testSubprotocol_run_inside hsp hxy
-            _ = s.run x y := by
-              simp [hRunIn]
-            _ = p.run x y := by
-              symm
-              exact subprotocol_run_eq_of_reaches hsp hxy
-        · calc
-            q.run x y = qOut.run x y := by
-              simpa [q] using testSubprotocol_run_outside hsp hxy
-            _ = pOut.run x y := by
-              simp [hRunOut]
-            _ = p.run x y := by
-              dsimp [pOut]
-              exact prune_run_outside_of_lt hsp hm_lt_p hxy
-      · have hInBound' : 3 ^ qIn.complexity ≤ 2 ^ qIn.complexity * m ^ 2 := by
-          simpa [m] using hBoundIn
-        have hOutBound' : 3 ^ qOut.complexity ≤ 2 ^ qOut.complexity * (n - m) ^ 2 := by
-          simpa [hpOut_leaves] using hBoundOut
-        have hmaxBound :
-            3 ^ max qIn.complexity qOut.complexity ≤
-              2 ^ max qIn.complexity qOut.complexity * max (m ^ 2) ((n - m) ^ 2) := by
-          by_cases hcmp : qIn.complexity ≤ qOut.complexity
-          · have hmax : max qIn.complexity qOut.complexity = qOut.complexity := max_eq_right hcmp
-            rw [hmax]
-            calc
-              3 ^ qOut.complexity ≤ 2 ^ qOut.complexity * (n - m) ^ 2 := hOutBound'
-              _ ≤ 2 ^ qOut.complexity * max (m ^ 2) ((n - m) ^ 2) :=
-                    Nat.mul_le_mul_left _ (Nat.le_max_right _ _)
-          · have hcmp' : qOut.complexity ≤ qIn.complexity := le_of_not_ge hcmp
-            have hmax : max qIn.complexity qOut.complexity = qIn.complexity := max_eq_left hcmp'
-            rw [hmax]
-            calc
-              3 ^ qIn.complexity ≤ 2 ^ qIn.complexity * m ^ 2 := hInBound'
-              _ ≤ 2 ^ qIn.complexity * max (m ^ 2) ((n - m) ^ 2) :=
-                    Nat.mul_le_mul_left _ (Nat.le_max_left _ _)
-        have hm2 : 3 * m ≤ 2 * n := by
-          omega
-        have hout2 : 3 * (n - m) ≤ 2 * n := by
-          omega
-        have hmSq : 9 * m ^ 2 ≤ 4 * n ^ 2 := by
-          have hpow : (3 * m) * (3 * m) ≤ (2 * n) * (2 * n) := Nat.mul_le_mul hm2 hm2
-          simpa [pow_two, Nat.mul_assoc, Nat.mul_left_comm, Nat.mul_comm] using hpow
-        have houtSq : 9 * (n - m) ^ 2 ≤ 4 * n ^ 2 := by
-          have hpow : (3 * (n - m)) * (3 * (n - m)) ≤ (2 * n) * (2 * n) :=
-            Nat.mul_le_mul hout2 hout2
-          simpa [pow_two, Nat.mul_assoc, Nat.mul_left_comm, Nat.mul_comm] using hpow
-        have hmaxSq : 9 * max (m ^ 2) ((n - m) ^ 2) ≤ 4 * n ^ 2 := by
-          by_cases hcase : m ^ 2 ≤ (n - m) ^ 2
-          · rw [max_eq_right hcase]
-            exact houtSq
-          · rw [max_eq_left (le_of_not_ge hcase)]
-            exact hmSq
-        have hqComp : q.complexity = 2 + max qIn.complexity qOut.complexity := by
-          dsimp [q]
-          exact testSubprotocol_complexity hsp qIn qOut
-        rw [hqComp]
-        have hstep1 :
-            3 ^ (2 + max qIn.complexity qOut.complexity) =
-              9 * 3 ^ max qIn.complexity qOut.complexity := by
-          simp [pow_add, Nat.mul_comm]
-        have hstep2 :
-            2 ^ (2 + max qIn.complexity qOut.complexity) =
-              4 * 2 ^ max qIn.complexity qOut.complexity := by
-          simp [pow_add, Nat.mul_comm]
-        rw [hstep1, hstep2]
-        calc
-          9 * 3 ^ max qIn.complexity qOut.complexity
-              ≤ 9 * (2 ^ max qIn.complexity qOut.complexity * max (m ^ 2) ((n - m) ^ 2)) :=
-                Nat.mul_le_mul_left _ hmaxBound
-          _ = 2 ^ max qIn.complexity qOut.complexity * (9 * max (m ^ 2) ((n - m) ^ 2)) := by
-                ring
-          _ ≤ 2 ^ max qIn.complexity qOut.complexity * (4 * n ^ 2) :=
-                Nat.mul_le_mul_left _ hmaxSq
-          _ = (4 * 2 ^ max qIn.complexity qOut.complexity) * n ^ 2 := by
-                ring
-          _ = (4 * 2 ^ max qIn.complexity qOut.complexity) * p.numLeaves ^ 2 := by
-                simp [hpn]
-  exact htarget p.numLeaves p rfl
 
 end DetProtocol
