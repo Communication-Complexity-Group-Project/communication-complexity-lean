@@ -1,0 +1,82 @@
+version: 1
+entries:
+  - id: def:det_protocol
+    lean_decl: DetProtocol
+    module: CommunicationComplexity.Basic
+    status: formalized
+  - id: def:protocol_run
+    lean_decl: DetProtocol.run
+    module: CommunicationComplexity.Basic
+    status: formalized
+  - id: def:computes
+    lean_decl: DetProtocol.computes
+    module: CommunicationComplexity.Basic
+    status: formalized
+  - id: def:det_cc
+    lean_decl: deterministic_communication_complexity
+    module: CommunicationComplexity.Basic
+    status: formalized
+  - id: def:rand_protocol
+    lean_decl: RandProtocol
+    module: CommunicationComplexity.Rand.Basic
+    status: formalized
+  - id: def:rand_cc
+    lean_decl: randomized_communication_complexity
+    module: CommunicationComplexity.Rand.Basic
+    status: formalized
+  - id: thm:det_cc_le_clog
+    lean_decl: det_cc_le_clog_card
+    module: CommunicationComplexity.UpperBounds.Basic
+    status: formalized
+  - id: thm:det_cc_le_clog_X_alpha
+    lean_decl: det_cc_le_clog_card_X_alpha
+    module: CommunicationComplexity.UpperBounds.Basic
+    status: formalized
+  - id: def:rectangle
+    lean_decl: DetProtocol.isRectangle
+    module: CommunicationComplexity.LowerBounds.Rectangles
+    status: formalized
+  - id: def:mono_rect_partition
+    lean_decl: DetProtocol.isMonoRectPartition
+    module: CommunicationComplexity.LowerBounds.Rectangles
+    status: formalized
+  - id: def:leaf_rectangles
+    lean_decl: DetProtocol.leafRectangles
+    module: CommunicationComplexity.LowerBounds.Rectangles
+    status: formalized
+  - id: thm:rect_partition
+    lean_decl: DetProtocol.rectangle_partition
+    module: CommunicationComplexity.LowerBounds.Rectangles
+    status: formalized
+  - id: thm:rect_lower_bound
+    lean_decl: DetProtocol.det_cc_lower_bound
+    module: CommunicationComplexity.LowerBounds.Rectangles
+    status: formalized
+  - id: def:eq_fn
+    lean_decl: EQ
+    module: CommunicationComplexity.Functions.Equality
+    status: formalized
+  - id: thm:eq_upper
+    lean_decl: det_cc_EQ_le
+    module: CommunicationComplexity.Functions.Equality
+    status: formalized
+  - id: thm:eq_lower
+    lean_decl: le_det_cc_EQ
+    module: CommunicationComplexity.Functions.Equality
+    status: formalized
+  - id: thm:eq_exact
+    lean_decl: det_cc_EQ
+    module: CommunicationComplexity.Functions.Equality
+    status: formalized
+  - id: lem:balanced_subtree
+    lean_decl: Tree.balanced_subtree
+    module: CommunicationComplexity.Trees.Basic
+    status: formalized
+  - id: def:protocol_shape
+    lean_decl: DetProtocol.shape
+    module: CommunicationComplexity.Trees.Basic
+    status: formalized
+  - id: thm:complexity_log_leaves
+    lean_decl: complexity_le_two_log_numLeaves
+    module: CommunicationComplexity.Trees.Basic
+    status: planned

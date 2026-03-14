@@ -1,0 +1,25 @@
+\chapter{Result: Randomized Complexity Is No Larger Than Deterministic Complexity}
+
+\begin{definition}[Randomized protocol]
+  \label{def:rand_protocol}
+  \lean{RandProtocol}
+  \leanok
+  A randomized protocol augments the deterministic model with private randomness.
+\end{definition}
+
+\begin{definition}[Randomized communication complexity]
+  \label{def:rand_cc}
+  \lean{randomized_communication_complexity}
+  \leanok
+  \uses{def:rand_protocol}
+  $\Rand_\varepsilon(f)$ is the minimum complexity achieving error at most
+  $\varepsilon$ on each input.
+\end{definition}
+
+\begin{theorem}[Result 1]
+  \label{thm:rand_le_det}
+  \lean{rand_cc_le_det_cc}
+  \leanok
+  \uses{def:rand_cc, def:det_cc}
+  For any $\varepsilon \ge 0$, $\Rand_\varepsilon(f) \le \Det(f)$.
+\end{theorem}

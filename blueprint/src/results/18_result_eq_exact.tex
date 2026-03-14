@@ -1,0 +1,34 @@
+\chapter{Result: Exact Deterministic Complexity of Equality}
+
+\begin{definition}[Equality function]
+  \label{def:eq_fn}
+  \lean{EQ}
+  \leanok
+  $\EQ_n(x,y)=1$ iff $x=y$ on $n$-bit strings.
+\end{definition}
+
+\begin{theorem}[Upper bound for EQ]
+  \label{thm:eq_upper}
+  \lean{det_cc_EQ_le}
+  \leanok
+  \uses{def:eq_fn, def:det_cc, thm:det_cc_le_clog_X_alpha}
+  $\Det(\EQ_n) \le n+1$.
+\end{theorem}
+
+\begin{theorem}[Lower bound for EQ]
+  \label{thm:eq_lower}
+  \lean{le_det_cc_EQ}
+  \leanok
+  \uses{def:eq_fn, thm:rect_lower_bound}
+  For $n \ge 1$, $\Det(\EQ_n) \ge n+1$.
+\end{theorem}
+
+\begin{theorem}[Exact complexity of EQ]
+  \label{thm:eq_exact}
+  \lean{det_cc_EQ}
+  \leanok
+  \uses{thm:eq_upper, thm:eq_lower}
+  \[
+    \Det(\EQ_n) = \begin{cases}0 & n=0, \\ n+1 & n\ge1.\end{cases}
+  \]
+\end{theorem}

@@ -1,0 +1,37 @@
+\chapter{Result: Theorem 1.6 (Rectangle Partition Bound)}
+
+\begin{definition}[Leaf rectangles]
+  \label{def:leaf_rectangles}
+  \lean{DetProtocol.leafRectangles}
+  \leanok
+  \uses{def:det_protocol, def:rectangle}
+  The leaf rectangles of a protocol are the input sets reaching each leaf.
+\end{definition}
+
+\begin{lemma}[Leaf rectangles form a rectangle partition]
+  \label{lem:leaf_partition}
+  \lean{DetProtocol.leafRectangles_cover}
+  \lean{DetProtocol.leafRectangles_disjoint}
+  \lean{DetProtocol.leafRectangles_isRectangle}
+  \leanok
+  \uses{def:leaf_rectangles, def:mono_rect_partition}
+  Leaf rectangles cover $X \times Y$, are pairwise disjoint, and are rectangles.
+\end{lemma}
+
+\begin{lemma}[Leaf count bound]
+  \label{lem:leaf_card}
+  \lean{DetProtocol.leafRectangles_card}
+  \leanok
+  \uses{def:leaf_rectangles, def:protocol_run}
+  A protocol of complexity $c$ has at most $2^c$ leaf rectangles.
+\end{lemma}
+
+\begin{theorem}[Theorem 1.6]
+  \label{thm:rect_partition}
+  \lean{DetProtocol.rectangle_partition}
+  \lean{DetProtocol.mono_rectangle_partition_of_det_cc}
+  \leanok
+  \uses{lem:leaf_partition, lem:leaf_card, def:mono_rect_partition}
+  If a protocol computes $g$ with complexity $c$, then $X \times Y$ admits a
+  monochromatic rectangle partition for $g$ of size at most $2^c$.
+\end{theorem}

@@ -1,0 +1,26 @@
+\chapter{Result: Theorem 1.9 (Complexity vs. Leaf Count)}
+
+\begin{lemma}[Lemma 1.8: balanced subtree]
+  \label{lem:balanced_subtree}
+  \lean{Tree.balanced_subtree}
+  \leanok
+  Every binary tree with $\ell>1$ leaves has a subtree with between
+  $\ell/3$ and $2\ell/3$ leaves.
+\end{lemma}
+
+\begin{definition}[Protocol shape and number of leaves]
+  \label{def:protocol_shape}
+  \lean{DetProtocol.shape}
+  \lean{DetProtocol.numLeaves}
+  \leanok
+  \uses{def:det_protocol}
+  The shape of a protocol is its underlying binary tree; `numLeaves` counts leaves.
+\end{definition}
+
+\begin{theorem}[Theorem 1.9]
+  \label{thm:complexity_log_leaves}
+  \lean{complexity_le_two_log_numLeaves}
+  \uses{lem:balanced_subtree, def:protocol_shape, thm:rect_partition}
+  For any protocol $\pi$, there is a protocol $\pi'$ computing the same function
+  with complexity controlled by the leaf count of $\pi$.
+\end{theorem}

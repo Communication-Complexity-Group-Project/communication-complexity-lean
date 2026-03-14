@@ -1,0 +1,100 @@
+\chapter{Foundations}
+
+\section{Basic Protocol Definitions}
+
+\begin{definition}[Deterministic protocol]
+  \label{def:det_protocol}
+  \lean{DetProtocol}
+  \leanok
+  A \emph{deterministic two-party communication protocol} over input sets $X$, $Y$
+  and output type $\alpha$ is an inductive tree whose internal nodes are labelled
+  by either Alice (with a function $X \to \{0,1\}$) or Bob (with a function
+  $Y \to \{0,1\}$), and whose leaves carry output values in $\alpha$.
+\end{definition}
+
+\begin{definition}[Protocol run and complexity]
+  \label{def:protocol_run}
+  \lean{DetProtocol.run}\leanok
+  \lean{DetProtocol.complexity}\leanok
+  \uses{def:det_protocol}
+  The \emph{run} of a protocol $p$ on inputs $(x, y)$ is the output at the reached leaf.
+  The \emph{complexity} of $p$ is the worst-case depth.
+\end{definition}
+
+\begin{definition}[Computes]
+  \label{def:computes}
+  \lean{DetProtocol.computes}
+  \leanok
+  \uses{def:protocol_run}
+  A protocol $p$ \emph{computes} $f : X \to Y \to \alpha$ if
+  $p.\mathrm{run}(x,y) = f(x,y)$ for all $(x,y)$.
+\end{definition}
+
+\begin{definition}[Deterministic communication complexity]
+  \label{def:det_cc}
+  \lean{deterministic_communication_complexity}
+  \leanok
+  \uses{def:det_protocol, def:computes}
+  $\Det(f)$ is the infimum of protocol complexities among protocols computing $f$.
+\end{definition}
+
+\begin{lemma}
+  \label{lem:det_cc_le_iff}
+  \lean{det_cc_le_iff}
+  \leanok
+  \uses{def:det_cc}
+  $\Det(f) \le n$ iff some protocol computing $f$ has complexity at most $n$.
+\end{lemma}
+
+\begin{lemma}
+  \label{lem:le_det_cc_iff}
+  \lean{le_det_cc_iff}
+  \leanok
+  \uses{def:det_cc}
+  $n \le \Det(f)$ iff every protocol computing $f$ has complexity at least $n$.
+\end{lemma}
+
+\section{Basic Rectangle Definitions}
+
+\begin{definition}[Rectangle]
+  \label{def:rectangle}
+  \lean{DetProtocol.isRectangle}
+  \leanok
+  A set $R \subseteq X \times Y$ is a rectangle if $R = A \times B$ for some
+  $A \subseteq X$, $B \subseteq Y$.
+\end{definition}
+
+\begin{lemma}[Rectangle characterization]
+  \label{lem:rectangle_iff}
+  \lean{DetProtocol.isRectangle_iff}
+  \leanok
+  \uses{def:rectangle}
+  $R$ is a rectangle iff it is closed under taking mixed pairs.
+\end{lemma}
+
+\begin{definition}[Monochromatic rectangle partition]
+  \label{def:mono_rect_partition}
+  \lean{DetProtocol.isMonoRectPartition}
+  \leanok
+  \uses{def:rectangle}
+  A partition of $X \times Y$ into pairwise disjoint rectangles, each monochromatic
+  for $g : X \to Y \to \alpha$.
+\end{definition}
+
+\section{Generic Reference Bounds}
+
+\begin{theorem}
+  \label{thm:det_cc_le_clog}
+  \lean{det_cc_le_clog_card}
+  \leanok
+  \uses{def:det_cc}
+  For finite $X,Y$, $\Det(f) \le \lceil \log_2 |X| \rceil + \lceil \log_2 |Y| \rceil$.
+\end{theorem}
+
+\begin{theorem}
+  \label{thm:det_cc_le_clog_X_alpha}
+  \lean{det_cc_le_clog_card_X_alpha}
+  \leanok
+  \uses{def:det_cc}
+  For finite $X,\alpha$, $\Det(f) \le \lceil \log_2 |X| \rceil + \lceil \log_2 |\alpha| \rceil$.
+\end{theorem}
