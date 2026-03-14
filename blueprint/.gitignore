@@ -1,5 +1,8 @@
 web/
 src/web/
 src/web.paux
+src/web.fls
+src/web.log
+src/web.fdb_latexmk
 src/print/
 lean_decls
