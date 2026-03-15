@@ -1,32 +1,35 @@
-import CommunicationComplexity.Det.Subprotocol
+import CommunicationComplexity.Deterministic.Subprotocol
 import Mathlib.Tactic.Ring
+import Mathlib.Tactic.Linarith
 
-namespace DetProtocol
+namespace CommunicationComplexity
+
+namespace Deterministic.Protocol
 
 variable {X Y α : Type*}
 
-private lemma numLeaves_pos (p : DetProtocol X Y α) : 0 < p.numLeaves := by
+private lemma numLeaves_pos (p : Protocol X Y α) : 0 < p.numLeaves := by
   cases p with
   | output a =>
-    simp [DetProtocol.numLeaves, DetProtocol.shape]
+    simp [numLeaves, shape]
   | alice f P =>
     have h : 0 < (P false).numLeaves := numLeaves_pos (P false)
     have hsum : 0 < (P false).numLeaves + (P true).numLeaves := Nat.add_pos_left h _
-    simpa [DetProtocol.numLeaves, DetProtocol.shape] using hsum
+    simpa [numLeaves, shape] using hsum
   | bob f P =>
     have h : 0 < (P false).numLeaves := numLeaves_pos (P false)
     have hsum : 0 < (P false).numLeaves + (P true).numLeaves := Nat.add_pos_left h _
-    simpa [DetProtocol.numLeaves, DetProtocol.shape] using hsum
+    simpa [numLeaves, shape] using hsum
 
 /-- Balanced simulation theorem (R&Y-style): every deterministic protocol can be simulated by
 another protocol with the same behavior and complexity obeying
 `3^c ≤ 2^c * (#leaves)^2`. -/
-theorem theorem_1_7_experiment (p : DetProtocol X Y α) :
-    ∃ q : DetProtocol X Y α, q.run = p.run ∧
+theorem theorem_1_7_experiment (p : Protocol X Y α) :
+    ∃ q : Protocol X Y α, q.run = p.run ∧
       3 ^ q.complexity ≤ 2 ^ q.complexity * p.numLeaves ^ 2 := by
   let target : ℕ → Prop := fun n =>
-    ∀ p : DetProtocol X Y α, p.numLeaves = n →
-      ∃ q : DetProtocol X Y α, q.run = p.run ∧
+    ∀ p : Protocol X Y α, p.numLeaves = n →
+      ∃ q : Protocol X Y α, q.run = p.run ∧
         3 ^ q.complexity ≤ 2 ^ q.complexity * p.numLeaves ^ 2
   have htarget : ∀ n, target n := by
     intro n
@@ -41,20 +44,20 @@ theorem theorem_1_7_experiment (p : DetProtocol X Y α) :
         | alice f P =>
           exfalso
           have hs : (P false).shape.numLeaves + (P true).shape.numLeaves = 1 := by
-            simpa [DetProtocol.numLeaves, DetProtocol.shape] using hleaf1
+            simpa [numLeaves, shape] using hleaf1
           have hp0 : 0 < (P false).shape.numLeaves := by
-            simpa [DetProtocol.numLeaves] using numLeaves_pos (P false)
+            simpa [numLeaves] using numLeaves_pos (P false)
           have hp1 : 0 < (P true).shape.numLeaves := by
-            simpa [DetProtocol.numLeaves] using numLeaves_pos (P true)
+            simpa [numLeaves] using numLeaves_pos (P true)
           omega
         | bob f P =>
           exfalso
           have hs : (P false).shape.numLeaves + (P true).shape.numLeaves = 1 := by
-            simpa [DetProtocol.numLeaves, DetProtocol.shape] using hleaf1
+            simpa [numLeaves, shape] using hleaf1
           have hp0 : 0 < (P false).shape.numLeaves := by
-            simpa [DetProtocol.numLeaves] using numLeaves_pos (P false)
+            simpa [numLeaves] using numLeaves_pos (P false)
           have hp1 : 0 < (P true).shape.numLeaves := by
-            simpa [DetProtocol.numLeaves] using numLeaves_pos (P true)
+            simpa [numLeaves] using numLeaves_pos (P true)
           omega
       subst hn1
       simp [hcomp0, hpn]
@@ -130,11 +133,11 @@ theorem theorem_1_7_experiment (p : DetProtocol X Y α) :
           omega
         have hmSq : 9 * m ^ 2 ≤ 4 * n ^ 2 := by
           have hpow : (3 * m) * (3 * m) ≤ (2 * n) * (2 * n) := Nat.mul_le_mul hm2 hm2
-          simpa [sq, Nat.mul_assoc, Nat.mul_left_comm, Nat.mul_comm] using hpow
+          nlinarith [sq_nonneg m, sq_nonneg n]
         have houtSq : 9 * (n - m) ^ 2 ≤ 4 * n ^ 2 := by
           have hpow : (3 * (n - m)) * (3 * (n - m)) ≤ (2 * n) * (2 * n) :=
             Nat.mul_le_mul hout2 hout2
-          simpa [sq, Nat.mul_assoc, Nat.mul_left_comm, Nat.mul_comm] using hpow
+          nlinarith [sq_nonneg (n - m), sq_nonneg n]
         have hmaxSq : 9 * max (m ^ 2) ((n - m) ^ 2) ≤ 4 * n ^ 2 := by
           by_cases hcase : m ^ 2 ≤ (n - m) ^ 2
           · rw [max_eq_right hcase]
@@ -168,4 +171,6 @@ theorem theorem_1_7_experiment (p : DetProtocol X Y α) :
                 simp [hpn]
   exact htarget p.numLeaves p rfl
 
-end DetProtocol
+end Deterministic.Protocol
+
+end CommunicationComplexity
