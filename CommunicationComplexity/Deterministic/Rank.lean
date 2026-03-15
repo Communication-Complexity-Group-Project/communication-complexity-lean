@@ -1,7 +1,11 @@
 import Mathlib.LinearAlgebra.Matrix.Rank
 import Mathlib.Data.Real.Basic
 import CommunicationComplexity.Basic
-import CommunicationComplexity.LowerBounds.Rectangles
+import CommunicationComplexity.Deterministic.Rectangle
+
+namespace CommunicationComplexity
+
+namespace Deterministic.Rank
 
 open Classical in
 /-- The real-valued matrix of a Boolean function `f : X → Y → Bool`,
@@ -25,7 +29,7 @@ noncomputable def rectMatrix {X Y : Type*}
 /-- For a rectangle `R = A ×ˢ B`, `rectMatrix R` is an outer product,
 hence has rank ≤ 1. -/
 theorem rank_rectMatrix_le_one {X Y : Type*} [Fintype Y]
-    (R : Set (X × Y)) (hR : DetProtocol.isRectangle R) :
+    (R : Set (X × Y)) (hR : Rectangle.IsRectangle R) :
     (rectMatrix R).rank ≤ 1 := by
   classical
   obtain ⟨A, B, rfl⟩ := hR
@@ -35,6 +39,10 @@ theorem rank_rectMatrix_le_one {X Y : Type*} [Fintype Y]
     rw [this]; exact Matrix.rank_vecMulVec_le _ _
   ext x y; simp only [rectMatrix, Matrix.of_apply, Matrix.vecMulVec, Set.mem_prod_eq]
   cases Classical.em (x ∈ A) <;> cases Classical.em (y ∈ B) <;> simp_all
+
+end Deterministic.Rank
+
+end CommunicationComplexity
 
 /-- Matrix rank is subadditive: `rank (A + B) ≤ rank A + rank B`. -/
 theorem Matrix.rank_add_le {X Y : Type*} [Fintype Y]
@@ -57,7 +65,11 @@ theorem Matrix.rank_sum_le {X Y : Type*} [Fintype Y]
     rw [Finset.sum_insert hi, Finset.sum_insert hi]
     exact (Matrix.rank_add_le _ _).trans (Nat.add_le_add_left ih _)
 
-open Classical DetProtocol in
+namespace CommunicationComplexity
+
+namespace Deterministic.Rank
+
+open Rectangle in
 /-- The rank of a Boolean function is at most the number of
 rectangles in any monochromatic rectangle partition.
 Each true-mono rectangle contributes a rank-1 matrix,
@@ -66,7 +78,7 @@ theorem boolFunctionRank_le_ncard
     {X Y : Type*} [Finite X] [Fintype Y]
     (f : X → Y → Bool)
     (Part : Set (Set (X × Y)))
-    (hPart : isMonoRectPartition Part f) :
+    (hPart : Rectangle.IsMonoPartition Part f) :
     boolFunctionRank f ≤ Set.ncard Part := by
   classical
   let PF := (Set.toFinite Part).toFinset
@@ -103,15 +115,15 @@ theorem boolFunctionRank_le_ncard
     _ ≤ PF.card := Finset.card_filter_le _ _
     _ = Set.ncard Part := (Set.ncard_eq_toFinset_card Part (Set.toFinite Part)).symm
 
-open DetProtocol in
+open Rectangle in
 /-- If the deterministic CC of `f` is at most `n`, then the rank
 of `f` is at most `2^n`. -/
-theorem boolFunctionRank_le_pow_of_det_cc
+theorem boolFunctionRank_le_pow_of_communicationComplexity_le
     {X Y : Type*} [Finite X] [Fintype Y]
     (f : X → Y → Bool) (n : ℕ)
-    (h : deterministic_communication_complexity f ≤ n) :
+    (h : Deterministic.communicationComplexity f ≤ n) :
     boolFunctionRank f ≤ 2 ^ n := by
-  obtain ⟨Part, hPart, hCard⟩ := mono_rectangle_partition_of_det_cc f n h
+  obtain ⟨Part, hPart, hCard⟩ := Deterministic.mono_partition_of_communicationComplexity_le f n h
   exact (boolFunctionRank_le_ncard f Part hPart).trans hCard
 
 /-- Log-rank lower bound: the deterministic communication
@@ -120,9 +132,13 @@ theorem log_rank_lower_bound
     {X Y : Type*} [Finite X] [Fintype Y]
     (f : X → Y → Bool) :
     (Nat.clog 2 (boolFunctionRank f) : WithTop ℕ) ≤
-      deterministic_communication_complexity f := by
-  match h : deterministic_communication_complexity f with
+      Deterministic.communicationComplexity f := by
+  match h : Deterministic.communicationComplexity f with
   | ⊤ => exact le_top
   | (n : ℕ) =>
     exact_mod_cast Nat.clog_le_of_le_pow
-      (boolFunctionRank_le_pow_of_det_cc f n (le_of_eq h))
+      (boolFunctionRank_le_pow_of_communicationComplexity_le f n (le_of_eq h))
+
+end Deterministic.Rank
+
+end CommunicationComplexity
