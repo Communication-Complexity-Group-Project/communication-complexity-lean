@@ -19,6 +19,11 @@ name = "cslib"
 scope = "leanprover"
 rev = "b13a672"
 
+[[require]]
+name = "LeanArchitect"
+git = "https://github.com/hanwenzhu/LeanArchitect.git"
+rev = "v4.28.0"
+
 [[lean_lib]]
 name = "CommunicationComplexity"
 globs = ["CommunicationComplexity.+"]
