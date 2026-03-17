@@ -236,7 +236,7 @@ theorem toFiniteMessage_complexity {nX nY : ℕ}
 there exist `n` and `φ : CoinTape n → Ω` such that for any set `S`,
 the pushforward measure exceeds the true measure by at most `δ`. -/
 private theorem single_coin_approx
-    {Ω : Type*} [Fintype Ω]
+    {Ω : Type*} [Finite Ω]
     [MeasureSpace Ω] [DiscreteMeasurableSpace Ω]
     [IsProbabilityMeasure (volume : Measure Ω)]
     (δ : ℝ) (hδ : 0 < δ) :
@@ -245,6 +245,7 @@ private theorem single_coin_approx
         (volume (φ ⁻¹' S : Set (CoinTape n))).toReal ≤
         (volume S).toReal + δ := by
   haveI : Nonempty Ω := nonempty_of_isProbabilityMeasure volume
+  haveI : Fintype Ω := Fintype.ofFinite Ω
   classical
   -- Strategy: inverse CDF construction.
   -- Enumerate Ω via Fintype.equivFin, compute cumulative probabilities,
@@ -304,7 +305,7 @@ private theorem single_coin_approx
     -- The singletons {e.symm j} for j : Fin k partition Ω
     have h1 : ∑ j : Fin k, volume ({e.symm j} : Set Ω) = volume (Set.univ : Set Ω) := by
       rw [← measure_biUnion_finset]
-      · congr 1; ext x; simp only [Finset.mem_coe, Finset.mem_univ, Set.iUnion_true,
+      · congr 1; ext x; simp only [Finset.mem_univ, Set.iUnion_true,
           Set.mem_iUnion, Set.mem_singleton_iff, Set.mem_univ, iff_true]
         exact ⟨e x, (e.symm_apply_apply x).symm⟩
       · intro i _ j _ hij
@@ -316,7 +317,7 @@ private theorem single_coin_approx
   have hsum_le : ∑ j : Fin k, w j ≤ N := by
     suffices h : (∑ j : Fin k, w j : ℝ) ≤ N by exact_mod_cast h
     calc (∑ j : Fin k, w j : ℝ)
-        = ∑ j : Fin k, (w j : ℝ) := by push_cast; rfl
+        = ∑ j : Fin k, (w j : ℝ) := by rfl
       _ ≤ ∑ j : Fin k, (volume ({e.symm j} : Set Ω)).toReal * N :=
           Finset.sum_le_sum (fun j _ => hw_le j)
       _ = (∑ j : Fin k, (volume ({e.symm j} : Set Ω)).toReal) * N := by
@@ -363,7 +364,7 @@ private theorem single_coin_approx
   have hbinIdx_eq : ∀ (j : Fin k) (i : ℕ),
       cumW ↑j ≤ i → i < cumW (↑j + 1) → binIdx i = j := by
     intro j i hlo hhi
-    ext; simp only [binIdx, Fin.val_mk]
+    ext; simp only [binIdx]
     -- The filter is {m ∈ range k | cumW(m+1) ≤ i} = range j.val
     -- because for m < j: cumW(m+1) ≤ cumW(j) ≤ i
     --     and for m ≥ j: cumW(m+1) ≥ cumW(j+1) > i
@@ -416,7 +417,8 @@ private theorem single_coin_approx
     have hdisj : Disjoint filt filtC :=
       Finset.disjoint_filter.mpr (fun j _ h1 h2 => h2 h1)
     have hunion : filt ∪ filtC = Finset.univ := by
-      ext j; simp [filt, filtC]; exact em _
+      ext j; simp only [filt, filtC, Finset.mem_union, Finset.mem_filter,
+        Finset.mem_univ, true_and, iff_true]; exact em _
     -- g maps CoinTape to Fin k (the bin assignment)
     set g : CoinTape n → Fin k := fun ω => binIdx (eC ω).val
     -- φ(ω) ∈ S ↔ g(ω) ∈ filt
@@ -535,6 +537,7 @@ by coin flips: for any `δ > 0`, there exist `nX`, `nY` and maps
 pushforward measure of `S` under `(φ_X, φ_Y)` exceeds the true
 measure by at most `δ`. -/
 private theorem product_coin_approx
+    {Ω_X Ω_Y : Type*} [Finite Ω_X] [Finite Ω_Y]
     [MeasureSpace Ω_X] [DiscreteMeasurableSpace Ω_X]
     [MeasureSpace Ω_Y] [DiscreteMeasurableSpace Ω_Y]
     [IsProbabilityMeasure (volume : Measure Ω_X)]
@@ -546,12 +549,12 @@ private theorem product_coin_approx
         (volume (Prod.map φ_X φ_Y ⁻¹' S :
           Set (CoinTape nX × CoinTape nY))).toReal ≤
         (volume S).toReal + δ := by
+  haveI : Fintype Ω_X := Fintype.ofFinite Ω_X
+  haveI : Fintype Ω_Y := Fintype.ofFinite Ω_Y
   -- Apply single_coin_approx to each coordinate with δ/2
   have hδ2 : (0 : ℝ) < δ / 2 := by linarith
-  obtain ⟨nX, φ_X, hX⟩ :=
-    @single_coin_approx Ω_X _ _ _ _ (δ / 2) hδ2
-  obtain ⟨nY, φ_Y, hY⟩ :=
-    @single_coin_approx Ω_Y _ _ _ _ (δ / 2) hδ2
+  obtain ⟨nX, φ_X, hX⟩ := @single_coin_approx Ω_X _ _ _ _ (δ / 2) hδ2
+  obtain ⟨nY, φ_Y, hY⟩ := @single_coin_approx Ω_Y _ _ _ _ (δ / 2) hδ2
   refine ⟨nX, nY, φ_X, φ_Y, fun S => ?_⟩
   -- Strategy: decompose product measures as sums over elements,
   -- then use hX and hY to bound the difference.
@@ -648,7 +651,7 @@ private theorem product_coin_approx
     intro T
     have hunion : (φ_X ⁻¹' (↑T : Set Ω_X) : Set (CoinTape nX)) =
         ⋃ a ∈ T, φ_X ⁻¹' ({a} : Set Ω_X) := by
-      ext ω; simp [Set.mem_iUnion]
+      ext ω; simp
     have hdisj : Set.PairwiseDisjoint (↑T : Set Ω_X)
         (fun a => (φ_X ⁻¹' {a} : Set (CoinTape nX))) := by
       intro a _ b _ hab
@@ -748,7 +751,7 @@ theorem approx_satisfies_finiteMessage
   -- Pick δ = ε' - ε and get coin approximations φ_X, φ_Y
   have hδ : 0 < ε' - ε := sub_pos.mpr hε
   obtain ⟨nX, nY, φ_X, φ_Y, happrox⟩ :=
-    @product_coin_approx Ω_X Ω_Y _ _ _ _ _ _ _ _ (ε' - ε) hδ
+    product_coin_approx (Ω_X := Ω_X) (Ω_Y := Ω_Y) (ε' - ε) hδ
   -- Construct the finite-message protocol by pulling back randomness
   refine ⟨nX, nY, p.toFiniteMessage φ_X φ_Y, ?_, ?_⟩
   · -- approx_satisfies: error ≤ ε + δ = ε'
