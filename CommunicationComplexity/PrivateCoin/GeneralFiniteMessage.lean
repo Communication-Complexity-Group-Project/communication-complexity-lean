@@ -236,7 +236,7 @@ theorem toFiniteMessage_complexity {nX nY : ℕ}
 there exist `n` and `φ : CoinTape n → Ω` such that for any set `S`,
 the pushforward measure exceeds the true measure by at most `δ`. -/
 private theorem single_coin_approx
-    {Ω : Type*} [Fintype Ω] [Nonempty Ω]
+    {Ω : Type*} [Fintype Ω]
     [MeasureSpace Ω] [DiscreteMeasurableSpace Ω]
     [IsProbabilityMeasure (volume : Measure Ω)]
     (δ : ℝ) (hδ : 0 < δ) :
@@ -244,6 +244,7 @@ private theorem single_coin_approx
       ∀ (S : Set Ω),
         (volume (φ ⁻¹' S : Set (CoinTape n))).toReal ≤
         (volume S).toReal + δ := by
+  haveI : Nonempty Ω := nonempty_of_isProbabilityMeasure volume
   classical
   -- Strategy: inverse CDF construction.
   -- Enumerate Ω via Fintype.equivFin, compute cumulative probabilities,
@@ -534,7 +535,6 @@ by coin flips: for any `δ > 0`, there exist `nX`, `nY` and maps
 pushforward measure of `S` under `(φ_X, φ_Y)` exceeds the true
 measure by at most `δ`. -/
 private theorem product_coin_approx
-    [Nonempty Ω_X] [Nonempty Ω_Y]
     [MeasureSpace Ω_X] [DiscreteMeasurableSpace Ω_X]
     [MeasureSpace Ω_Y] [DiscreteMeasurableSpace Ω_Y]
     [IsProbabilityMeasure (volume : Measure Ω_X)]
@@ -549,9 +549,9 @@ private theorem product_coin_approx
   -- Apply single_coin_approx to each coordinate with δ/2
   have hδ2 : (0 : ℝ) < δ / 2 := by linarith
   obtain ⟨nX, φ_X, hX⟩ :=
-    @single_coin_approx Ω_X _ _ _ _ _ (δ / 2) hδ2
+    @single_coin_approx Ω_X _ _ _ _ (δ / 2) hδ2
   obtain ⟨nY, φ_Y, hY⟩ :=
-    @single_coin_approx Ω_Y _ _ _ _ _ (δ / 2) hδ2
+    @single_coin_approx Ω_Y _ _ _ _ (δ / 2) hδ2
   refine ⟨nX, nY, φ_X, φ_Y, fun S => ?_⟩
   -- Strategy: decompose product measures as sums over elements,
   -- then use hX and hY to bound the difference.
@@ -734,7 +734,6 @@ the uniform measure, then for any `ε' > ε` there exists a
 coin-flip finite-message protocol that `ε'`-satisfies `Q` with
 the same complexity. -/
 theorem approx_satisfies_finiteMessage
-    [Nonempty Ω_X] [Nonempty Ω_Y]
     [MeasureSpace Ω_X] [DiscreteMeasurableSpace Ω_X]
     [MeasureSpace Ω_Y] [DiscreteMeasurableSpace Ω_Y]
     [IsProbabilityMeasure (volume : Measure Ω_X)]
@@ -749,7 +748,7 @@ theorem approx_satisfies_finiteMessage
   -- Pick δ = ε' - ε and get coin approximations φ_X, φ_Y
   have hδ : 0 < ε' - ε := sub_pos.mpr hε
   obtain ⟨nX, nY, φ_X, φ_Y, happrox⟩ :=
-    @product_coin_approx Ω_X Ω_Y _ _ _ _ _ _ _ _ _ _ (ε' - ε) hδ
+    @product_coin_approx Ω_X Ω_Y _ _ _ _ _ _ _ _ (ε' - ε) hδ
   -- Construct the finite-message protocol by pulling back randomness
   refine ⟨nX, nY, p.toFiniteMessage φ_X φ_Y, ?_, ?_⟩
   · -- approx_satisfies: error ≤ ε + δ = ε'

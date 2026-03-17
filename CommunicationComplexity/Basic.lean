@@ -2,6 +2,7 @@ import CommunicationComplexity.Deterministic.Basic
 import CommunicationComplexity.Deterministic.FiniteMessage
 import CommunicationComplexity.PrivateCoin.Basic
 import CommunicationComplexity.PrivateCoin.FiniteMessage
+import CommunicationComplexity.PrivateCoin.GeneralFiniteMessage
 
 namespace CommunicationComplexity
 
@@ -204,5 +205,28 @@ theorem PrivateCoin.communicationComplexity_le_deterministic
       simp [hempty, hε]
     · rw [Deterministic.Protocol.toPrivateCoin_complexity]
       exact hc
+
+/-- If a general finite-message protocol ε'-computes f with ε' < ε,
+then the private-coin communication complexity at error ε is at most
+the protocol's complexity. -/
+theorem PrivateCoin.communicationComplexity_le_of_generalFiniteMessage
+    {X Y α} [DecidableEq α]
+    {Ω_X Ω_Y : Type*} [Fintype Ω_X] [Fintype Ω_Y]
+    [MeasureSpace Ω_X] [DiscreteMeasurableSpace Ω_X]
+    [MeasureSpace Ω_Y] [DiscreteMeasurableSpace Ω_Y]
+    [IsProbabilityMeasure (volume : Measure Ω_X)]
+    [IsProbabilityMeasure (volume : Measure Ω_Y)]
+    (f : X → Y → α) (ε ε' : ℝ) (hε : ε' < ε)
+    (p : PrivateCoin.GeneralFiniteMessage.Protocol Ω_X Ω_Y X Y α)
+    (hp : p.approx_computes f ε') :
+    PrivateCoin.communicationComplexity f ε ≤ p.complexity := by
+  rw [PrivateCoin.communicationComplexity_le_iff_finiteMessage]
+  -- Convert approx_computes to approx_satisfies
+  rw [PrivateCoin.GeneralFiniteMessage.Protocol.approx_computes_eq_approx_satisfies] at hp
+  -- Apply the key theorem: get a coin-flip FiniteMessage protocol
+  obtain ⟨nX, nY, q, hq, hc⟩ :=
+    PrivateCoin.GeneralFiniteMessage.Protocol.approx_satisfies_finiteMessage
+      p _ ε' ε hε hp
+  exact ⟨nX, nY, q, fun x y => hq x y, le_of_eq hc⟩
 
 end CommunicationComplexity
