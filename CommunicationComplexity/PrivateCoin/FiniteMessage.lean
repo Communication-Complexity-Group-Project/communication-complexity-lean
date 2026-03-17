@@ -11,6 +11,8 @@ import Mathlib.Data.Nat.Bitwise
 
 namespace CommunicationComplexity
 
+open MeasureTheory
+
 /-- A generalized randomized two-party communication protocol with
 coin flip randomness. At each step, a player sends an element of an
 arbitrary finite type `β`. Alice has `nX` coin flips, Bob has `nY`.
@@ -77,6 +79,31 @@ theorem swap_complexity (p : Protocol nX nY X Y α) :
   | output a => simp [swap, complexity]
   | alice f P ih => simp only [swap, complexity, ih]
   | bob f P ih => simp only [swap, complexity, ih]
+
+/-- A finite-message protocol `ε`-satisfies a predicate `Q` if for
+every input `(x, y)`, the probability that `Q x y (p.run ...)`
+fails is at most `ε`. -/
+def approx_satisfies
+    (p : Protocol nX nY X Y α) (Q : X → Y → α → Prop)
+    (ε : ℝ) : Prop :=
+  ∀ x y,
+    (volume {ω : CoinTape nX × CoinTape nY |
+      ¬Q x y (p.run x y ω.1 ω.2)}).toReal ≤ ε
+
+/-- A finite-message protocol `ε`-computes a function `f` if for
+every input `(x, y)`, the probability of producing an incorrect
+answer is at most `ε`. -/
+def approx_computes [DecidableEq α]
+    (p : Protocol nX nY X Y α) (f : X → Y → α) (ε : ℝ) : Prop :=
+  ∀ x y,
+    (volume {ω : CoinTape nX × CoinTape nY |
+      p.run x y ω.1 ω.2 ≠ f x y}).toReal ≤ ε
+
+theorem approx_computes_eq_approx_satisfies [DecidableEq α]
+    (p : Protocol nX nY X Y α) (f : X → Y → α) (ε : ℝ) :
+    p.approx_computes f ε =
+      p.approx_satisfies (fun x y a => a = f x y) ε := by
+  simp only [approx_computes, approx_satisfies, ne_eq]
 
 /-- Embed a binary randomized protocol into a generalized randomized
 protocol (with `β = Bool` at each step). -/
