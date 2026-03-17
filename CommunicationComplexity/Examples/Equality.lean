@@ -20,9 +20,8 @@ theorem communicationComplexity_le (n : ℕ) :
     _ = n + 1 := by
         simp only [Nat.card_eq_fintype_card, Fintype.card_pi, Fintype.card_bool,
           Finset.prod_const, Finset.card_univ, Fintype.card_fin, Nat.one_lt_ofNat,
-          Nat.clog_pow, ne_eq, WithTop.natCast_ne_top, not_false_eq_true,
-          add_right_inj_of_ne_top, Nat.cast_eq_one]
-        decide
+          Nat.clog_pow]
+        norm_cast
 
 /-- When n = 0, eq has communication complexity 0: both inputs are
 the unique empty function, so the output is always `true`. -/

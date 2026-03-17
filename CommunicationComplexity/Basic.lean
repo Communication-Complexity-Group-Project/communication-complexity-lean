@@ -1,3 +1,4 @@
+import Mathlib.Data.ENat.Lattice
 import CommunicationComplexity.Deterministic.Basic
 import CommunicationComplexity.Deterministic.FiniteMessage
 import CommunicationComplexity.PrivateCoin.Basic
@@ -9,14 +10,14 @@ namespace CommunicationComplexity
 open MeasureTheory ProbabilityTheory
 
 @[simp]
-private theorem WithTop.iInf_le_coe_iff {ι : Sort*} {f : ι → WithTop ℕ} {n : ℕ} :
+private theorem enat_iInf_le_coe_iff {ι : Sort*} {f : ι → ENat} {n : ℕ} :
     iInf f ≤ ↑n ↔ ∃ i, f i ≤ ↑n := by
   constructor
   · intro h
     by_contra hne
     push_neg at hne
     apply not_lt.mpr h
-    have : ∀ i, (↑(n + 1) : WithTop ℕ) ≤ f i := fun i => by
+    have : ∀ i, (↑(n + 1) : ENat) ≤ f i := fun i => by
       match f i, hne i with
       | none, _ => exact le_top
       | some m, hi =>
@@ -31,9 +32,9 @@ private theorem WithTop.iInf_le_coe_iff {ι : Sort*} {f : ι → WithTop ℕ} {n
 namespace Deterministic
 
 noncomputable def communicationComplexity
-    {X Y α} (f : X → Y → α) : WithTop ℕ :=
+    {X Y α} (f : X → Y → α) : ENat :=
   ⨅ (p : Protocol X Y α) (_ : p.computes f),
-    (p.complexity : WithTop ℕ)
+    (p.complexity : ENat)
 
 theorem communicationComplexity_le_iff
     {X Y α} (f : X → Y → α) (n : ℕ) :
@@ -41,7 +42,7 @@ theorem communicationComplexity_le_iff
       ∃ p : Protocol X Y α,
         p.computes f ∧ p.complexity ≤ n := by
   simp only [communicationComplexity,
-    WithTop.iInf_le_coe_iff, Nat.cast_le, exists_prop]
+    enat_iInf_le_coe_iff, Nat.cast_le, exists_prop]
 
 theorem communicationComplexity_le_iff_finiteMessage
     {X Y α} (f : X → Y → α) (n : ℕ) :
@@ -61,7 +62,7 @@ theorem communicationComplexity_le_iff_finiteMessage
 
 theorem le_communicationComplexity_iff
     {X Y α} (f : X → Y → α) (n : ℕ) :
-    (n : WithTop ℕ) ≤ communicationComplexity f ↔
+    (n : ENat) ≤ communicationComplexity f ↔
       ∀ p : Protocol X Y α,
         p.computes f → n ≤ p.complexity := by
   simp only [communicationComplexity,
@@ -76,27 +77,24 @@ defined as the minimum worst-case number of bits exchanged over all
 coin-flip randomized protocols that compute `f` with error at most
 `ε` on every input. -/
 noncomputable def communicationComplexity
-    {X Y α} [DecidableEq α]
-    (f : X → Y → α) (ε : ℝ) : WithTop ℕ :=
+    {X Y α} (f : X → Y → α) (ε : ℝ) : ENat :=
   ⨅ (nX : ℕ) (nY : ℕ)
     (p : Protocol nX nY X Y α)
     (_ : p.approx_computes f ε),
-    (p.complexity : WithTop ℕ)
+    (p.complexity : ENat)
 
 theorem communicationComplexity_le_iff
-    {X Y α} [DecidableEq α]
-    (f : X → Y → α) (ε : ℝ) (n : ℕ) :
+    {X Y α} (f : X → Y → α) (ε : ℝ) (n : ℕ) :
     communicationComplexity f ε ≤ n ↔
       ∃ (nX nY : ℕ) (p : Protocol nX nY X Y α),
         p.approx_computes f ε ∧
         p.complexity ≤ n := by
   unfold communicationComplexity
-  simp only [WithTop.iInf_le_coe_iff, Nat.cast_le, exists_prop]
+  simp only [enat_iInf_le_coe_iff, Nat.cast_le, exists_prop]
 
 theorem le_communicationComplexity_iff
-    {X Y α} [DecidableEq α]
-    (f : X → Y → α) (ε : ℝ) (n : ℕ) :
-    (n : WithTop ℕ) ≤ communicationComplexity f ε ↔
+    {X Y α} (f : X → Y → α) (ε : ℝ) (n : ℕ) :
+    (n : ENat) ≤ communicationComplexity f ε ↔
       ∀ (nX nY : ℕ) (p : Protocol nX nY X Y α),
         p.approx_computes f ε →
         n ≤ p.complexity := by
@@ -104,8 +102,7 @@ theorem le_communicationComplexity_iff
   simp only [le_iInf_iff, Nat.cast_le]
 
 theorem communicationComplexity_le_iff_finiteMessage
-    {X Y α} [DecidableEq α]
-    (f : X → Y → α) (ε : ℝ) (n : ℕ) :
+    {X Y α} (f : X → Y → α) (ε : ℝ) (n : ℕ) :
     communicationComplexity f ε ≤ n ↔
       ∃ (nX nY : ℕ)
         (p : FiniteMessage.Protocol nX nY X Y α),
@@ -179,8 +176,7 @@ private theorem Deterministic.Protocol.toPrivateCoin_complexity
       Deterministic.Protocol.complexity, ih]
 
 theorem PrivateCoin.communicationComplexity_le_deterministic
-    {X Y α} [DecidableEq α]
-    (f : X → Y → α) (ε : ℝ) (hε : 0 ≤ ε) :
+    {X Y α} (f : X → Y → α) (ε : ℝ) (hε : 0 ≤ ε) :
     PrivateCoin.communicationComplexity f ε ≤
       Deterministic.communicationComplexity f := by
   match h : Deterministic.communicationComplexity f with
@@ -210,8 +206,7 @@ theorem PrivateCoin.communicationComplexity_le_deterministic
 then the private-coin communication complexity at error ε is at most
 the protocol's complexity. -/
 theorem PrivateCoin.communicationComplexity_le_of_generalFiniteMessage
-    {X Y α} [DecidableEq α]
-    {Ω_X Ω_Y : Type*} [Fintype Ω_X] [Fintype Ω_Y]
+    {X Y α} {Ω_X Ω_Y : Type*} [Fintype Ω_X] [Fintype Ω_Y]
     [MeasureSpace Ω_X] [DiscreteMeasurableSpace Ω_X]
     [MeasureSpace Ω_Y] [DiscreteMeasurableSpace Ω_Y]
     [IsProbabilityMeasure (volume : Measure Ω_X)]

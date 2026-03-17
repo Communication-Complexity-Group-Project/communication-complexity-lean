@@ -3,6 +3,7 @@ import Mathlib.Data.Fintype.Card
 import Mathlib.Data.Fintype.Pi
 import Mathlib.Data.Nat.Log
 import Mathlib.Data.Finset.Lattice.Fold
+import Mathlib.MeasureTheory.MeasurableSpace.Defs
 
 namespace CommunicationComplexity
 
@@ -130,6 +131,28 @@ theorem ofProtocol_equiv
    funext₂ fun x y => funext fun ω =>
      ofProtocol_run p x y ω,
    ofProtocol_complexity p⟩
+
+open MeasureTheory
+
+/-- A public-coin finite-message protocol `ε`-satisfies a predicate `Q`
+if for every input `(x, y)`, the probability that
+`Q x y (p.run ...)` fails is at most `ε`. -/
+def approx_satisfies
+    (p : Protocol n X Y α) (Q : X → Y → α → Prop)
+    (ε : ℝ) : Prop :=
+  ∀ x y,
+    (volume {ω : CoinTape n |
+      ¬Q x y (p.run x y ω)}).toReal ≤ ε
+
+open Classical in
+/-- A public-coin finite-message protocol `ε`-computes a function `f`
+if for every input `(x, y)`, the probability of producing an
+incorrect answer is at most `ε`. -/
+def approx_computes
+    (p : Protocol n X Y α) (f : X → Y → α) (ε : ℝ) : Prop :=
+  ∀ x y,
+    (volume {ω : CoinTape n |
+      p.run x y ω ≠ f x y}).toReal ≤ ε
 
 end PublicCoin.FiniteMessage.Protocol
 
