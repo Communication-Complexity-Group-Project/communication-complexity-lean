@@ -343,7 +343,7 @@ open MeasureTheory
 /-- A public-coin finite-message protocol `ε`-satisfies a predicate `Q`
 if for every input `(x, y)`, the probability that
 `Q x y (p.run ...)` fails is at most `ε`. -/
-def approx_satisfies
+def ApproxSatisfies
     (p : Protocol n X Y α) (Q : X → Y → α → Prop)
     (ε : ℝ) : Prop :=
   ∀ x y,
@@ -354,7 +354,7 @@ open Classical in
 /-- A public-coin finite-message protocol `ε`-computes a function `f`
 if for every input `(x, y)`, the probability of producing an
 incorrect answer is at most `ε`. -/
-def approx_computes
+def ApproxComputes
     (p : Protocol n X Y α) (f : X → Y → α) (ε : ℝ) : Prop :=
   ∀ x y,
     (volume {ω : CoinTape n |

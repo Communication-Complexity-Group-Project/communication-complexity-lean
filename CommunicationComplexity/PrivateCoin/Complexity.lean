@@ -17,14 +17,14 @@ noncomputable def communicationComplexity
     {X Y α} (f : X → Y → α) (ε : ℝ) : ENat :=
   ⨅ (nX : ℕ) (nY : ℕ)
     (p : Protocol nX nY X Y α)
-    (_ : p.approx_computes f ε),
+    (_ : p.ApproxComputes f ε),
     (p.complexity : ENat)
 
 theorem communicationComplexity_le_iff
     {X Y α} (f : X → Y → α) (ε : ℝ) (n : ℕ) :
     communicationComplexity f ε ≤ n ↔
       ∃ (nX nY : ℕ) (p : Protocol nX nY X Y α),
-        p.approx_computes f ε ∧
+        p.ApproxComputes f ε ∧
         p.complexity ≤ n := by
   unfold communicationComplexity
   simp only [Internal.enat_iInf_le_coe_iff, Nat.cast_le, exists_prop]
@@ -33,7 +33,7 @@ theorem le_communicationComplexity_iff
     {X Y α} (f : X → Y → α) (ε : ℝ) (n : ℕ) :
     (n : ENat) ≤ communicationComplexity f ε ↔
       ∀ (nX nY : ℕ) (p : Protocol nX nY X Y α),
-        p.approx_computes f ε →
+        p.ApproxComputes f ε →
         n ≤ p.complexity := by
   unfold communicationComplexity
   simp only [le_iInf_iff, Nat.cast_le]
@@ -85,14 +85,14 @@ theorem communicationComplexity_le_of_generalFiniteMessage
     [IsProbabilityMeasure (volume : Measure Ω_Y)]
     (f : X → Y → α) (ε ε' : ℝ) (hε : ε' < ε)
     (p : PrivateCoin.GeneralFiniteMessage.Protocol Ω_X Ω_Y X Y α)
-    (hp : p.approx_computes f ε') :
+    (hp : p.ApproxComputes f ε') :
     PrivateCoin.communicationComplexity f ε ≤ p.complexity := by
   rw [PrivateCoin.communicationComplexity_le_iff_finiteMessage]
-  -- Convert approx_computes to approx_satisfies
-  rw [PrivateCoin.GeneralFiniteMessage.Protocol.approx_computes_eq_approx_satisfies] at hp
+  -- Convert ApproxComputes to ApproxSatisfies
+  rw [PrivateCoin.GeneralFiniteMessage.Protocol.ApproxComputes_eq_ApproxSatisfies] at hp
   -- Apply the key theorem: get a coin-flip FiniteMessage protocol
   obtain ⟨nX, nY, q, hq, hc⟩ :=
-    PrivateCoin.GeneralFiniteMessage.Protocol.approx_satisfies_finiteMessage
+    PrivateCoin.GeneralFiniteMessage.Protocol.ApproxSatisfies_finiteMessage
       p _ ε' ε hε hp
   exact ⟨nX, nY, q, fun x y => hq x y, le_of_eq hc⟩
 
