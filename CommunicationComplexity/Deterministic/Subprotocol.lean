@@ -244,8 +244,7 @@ lemma subprotocol_run_eq_of_reachesPath
     {s p : Protocol X Y α} (hsp : SubprotocolPath s p) {x : X} {y : Y}
     (hxy : reachesPath hsp x y) : p.run x y = s.run x y := by
   induction hsp with
-  | refl _ =>
-    rfl
+  | refl _ => rfl
   | alice_false f P s hs ih =>
     rcases hxy with ⟨hx, hy⟩
     have hfx : f x = false := hx.2

@@ -20,19 +20,13 @@ def map [Fintype Ω_X] [Fintype Ω_Y] (g : α → β) :
 theorem map_run [Fintype Ω_X] [Fintype Ω_Y] (g : α → β)
     (p : Protocol Ω_X Ω_Y X Y α) (x : X) (y : Y) (ω_x : Ω_X) (ω_y : Ω_Y) :
     (p.map g).run x y ω_x ω_y = g (p.run x y ω_x ω_y) := by
-  induction p with
-  | output a => simp [map, run]
-  | alice f P ih => simp only [map, run]; exact ih _
-  | bob f P ih => simp only [map, run]; exact ih _
+  induction p <;> simp [map, run, *]
 
 @[simp]
 theorem map_complexity [Fintype Ω_X] [Fintype Ω_Y] (g : α → β)
     (p : Protocol Ω_X Ω_Y X Y α) :
     (p.map g).complexity = p.complexity := by
-  induction p with
-  | output a => simp [map, complexity]
-  | alice f P ih => simp only [map, complexity, ih]
-  | bob f P ih => simp only [map, complexity, ih]
+  induction p <;> simp [map, complexity, *]
 
 /-- Reindex both randomness spaces of a protocol. -/
 def comapRandomness [Fintype Ω_X] [Fintype Ω_Y] [Fintype Ω_X'] [Fintype Ω_Y']
@@ -51,19 +45,13 @@ theorem comapRandomness_run [Fintype Ω_X] [Fintype Ω_Y] [Fintype Ω_X'] [Finty
     (hX : Ω_X' → Ω_X) (hY : Ω_Y' → Ω_Y) (p : Protocol Ω_X Ω_Y X Y α)
     (x : X) (y : Y) (ω_x : Ω_X') (ω_y : Ω_Y') :
     (p.comapRandomness hX hY).run x y ω_x ω_y = p.run x y (hX ω_x) (hY ω_y) := by
-  induction p with
-  | output a => simp [comapRandomness, run]
-  | alice f P ih => simp only [comapRandomness, run]; exact ih _
-  | bob f P ih => simp only [comapRandomness, run]; exact ih _
+  induction p <;> simp [comapRandomness, run, *]
 
 @[simp]
 theorem comapRandomness_complexity [Fintype Ω_X] [Fintype Ω_Y] [Fintype Ω_X'] [Fintype Ω_Y']
     (hX : Ω_X' → Ω_X) (hY : Ω_Y' → Ω_Y) (p : Protocol Ω_X Ω_Y X Y α) :
     (p.comapRandomness hX hY).complexity = p.complexity := by
-  induction p with
-  | output a => simp [comapRandomness, complexity]
-  | alice f P ih => simp only [comapRandomness, complexity, ih]
-  | bob f P ih => simp only [comapRandomness, complexity, ih]
+  induction p <;> simp [comapRandomness, complexity, *]
 
 variable [Fintype Ω_X1] [Fintype Ω_X2] [Fintype Ω_Y1] [Fintype Ω_Y2]
 
@@ -89,10 +77,7 @@ theorem prod_run
     (x : X) (y : Y) (ω_x : Ω_X1 × Ω_X2) (ω_y : Ω_Y1 × Ω_Y2) :
     (p1.prod p2).run x y ω_x ω_y =
       (p1.run x y ω_x.1 ω_y.1, p2.run x y ω_x.2 ω_y.2) := by
-  induction p1 with
-  | output a1 => simp [prod, run]
-  | alice f P ih => simp only [prod, run]; exact ih _
-  | bob f P ih => simp only [prod, run]; exact ih _
+  induction p1 <;> simp [prod, run, *]
 
 private theorem finset_sup_add_const {ι : Type*} [Fintype ι] [Nonempty ι]
     (f : ι → ℕ) (c : ℕ) :
@@ -133,10 +118,7 @@ theorem bind_run [Fintype Ω_X] [Fintype Ω_Y]
     (p : Protocol Ω_X Ω_Y X Y α) (q : α → Protocol Ω_X Ω_Y X Y β)
     (x : X) (y : Y) (ω_x : Ω_X) (ω_y : Ω_Y) :
     (p.bind q).run x y ω_x ω_y = (q (p.run x y ω_x ω_y)).run x y ω_x ω_y := by
-  induction p with
-  | output a => simp [bind, run]
-  | alice f P ih => simp only [bind, run]; exact ih _
-  | bob f P ih => simp only [bind, run]; exact ih _
+  induction p <;> simp [bind, run, *]
 
 variable {k : ℕ}
   {Ω_Xf : Fin k → Type*} [∀ i, Fintype (Ω_Xf i)]

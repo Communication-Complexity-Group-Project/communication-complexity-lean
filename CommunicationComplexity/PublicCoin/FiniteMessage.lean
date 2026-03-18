@@ -65,18 +65,12 @@ def swap : Protocol n X Y α → Protocol n Y X α
 theorem swap_run (p : Protocol n X Y α) (x : X) (y : Y)
     (ω : CoinTape n) :
     p.swap.run y x ω = p.run x y ω := by
-  induction p with
-  | output a => simp [swap, run]
-  | alice f P ih => simp only [swap, run]; exact ih _
-  | bob f P ih => simp only [swap, run]; exact ih _
+  induction p <;> simp [swap, run, *]
 
 @[simp]
 theorem swap_complexity (p : Protocol n X Y α) :
     p.swap.complexity = p.complexity := by
-  induction p with
-  | output a => simp [swap, complexity]
-  | alice f P ih => simp only [swap, complexity, ih]
-  | bob f P ih => simp only [swap, complexity, ih]
+  induction p <;> simp [swap, complexity, *]
 
 /-- Embed a binary public-coin protocol into a finite-message
 public-coin protocol (with `β = Bool` at each step). -/
@@ -94,37 +88,16 @@ theorem ofProtocol_run
     (x : X) (y : Y) (ω : CoinTape n) :
     (ofProtocol p).run x y ω =
       p.run x y ω := by
-  induction p with
-  | output a =>
-    simp [ofProtocol, run, PublicCoin.Protocol.run]
-  | alice f P ih =>
-    simp [ofProtocol, run, PublicCoin.Protocol.run, ih]
-  | bob f P ih =>
-    simp [ofProtocol, run, PublicCoin.Protocol.run, ih]
+  induction p <;> simp [ofProtocol, run, PublicCoin.Protocol.run, *]
 
 theorem ofProtocol_complexity
     (p : PublicCoin.Protocol n X Y α) :
     (ofProtocol p).complexity = p.complexity := by
-  induction p with
-  | output a =>
-    simp [ofProtocol, complexity,
-      PublicCoin.Protocol.complexity]
-  | alice f P ih =>
-    simp only [ofProtocol, complexity,
-      PublicCoin.Protocol.complexity, ih]
-    have : Nat.clog 2 (Fintype.card Bool) = 1 := by decide
-    rw [this]
-    have : (Finset.univ : Finset Bool) = {false, true} := by
-      ext b; simp
-    simp [this]
-  | bob f P ih =>
-    simp only [ofProtocol, complexity,
-      PublicCoin.Protocol.complexity, ih]
-    have : Nat.clog 2 (Fintype.card Bool) = 1 := by decide
-    rw [this]
-    have : (Finset.univ : Finset Bool) = {false, true} := by
-      ext b; simp
-    simp [this]
+  induction p <;> simp only [ofProtocol, complexity,
+    PublicCoin.Protocol.complexity, Fintype.univ_bool,
+    Finset.sup_insert, Finset.sup_singleton,
+    show Nat.clog 2 (Fintype.card Bool) = 1 from by decide,
+    Nat.max_comm, *]
 
 /-- Every binary public-coin protocol can be viewed as a finite-message
 public-coin protocol with the same run behavior and complexity. -/
@@ -161,12 +134,10 @@ private theorem completeTreeAlice_run (d : ℕ)
   | succ d ih =>
     simp only [completeTreeAlice, PublicCoin.Protocol.run]
     rw [ih]
-    have : Fin.cons (query 0 x ω)
-        (fun i => (query ∘ Fin.succ) i x ω) =
+    have :
+        Fin.cons (query 0 x ω) (fun i => (query ∘ Fin.succ) i x ω) =
         fun i => query i x ω := by
-      ext i; refine Fin.cases ?_ ?_ i
-      · simp [Fin.cons]
-      · intro j; simp [Fin.cons, Function.comp]
+      simpa [Function.comp] using (Fin.cons_self_tail (fun i => query i x ω))
     rw [this]
 
 private theorem completeTreeAlice_complexity (d : ℕ)
@@ -178,13 +149,8 @@ private theorem completeTreeAlice_complexity (d : ℕ)
   induction d with
   | zero =>
     simp only [completeTreeAlice, Nat.zero_add]
-    have huniq : ∀ (f : Fin 0 → Bool), f = Fin.elim0 := by
-      intro f; funext i; exact i.elim0
-    have : (Finset.univ : Finset (Fin 0 → Bool)) =
-        {Fin.elim0} := by
-      ext x; constructor
-      · intro _; simp [huniq x]
-      · intro _; exact Finset.mem_univ x
+    have : (Finset.univ : Finset (Fin 0 → Bool)) = {Fin.elim0} := by
+      simpa using (univ_eq_singleton_of_card_one Fin.elim0 (by simp))
     rw [this, Finset.sup_singleton]
   | succ d ih =>
     simp only [completeTreeAlice,

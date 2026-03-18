@@ -69,18 +69,12 @@ def swap : Protocol Ω X Y α → Protocol Ω Y X α
 theorem swap_run (p : Protocol Ω X Y α)
     (x : X) (y : Y) (ω : Ω) :
     p.swap.run y x ω = p.run x y ω := by
-  induction p with
-  | output a => simp [swap, run]
-  | alice f P ih => simp only [swap, run]; exact ih _
-  | bob f P ih => simp only [swap, run]; exact ih _
+  induction p <;> simp [swap, run, *]
 
 @[simp]
 theorem swap_complexity (p : Protocol Ω X Y α) :
     p.swap.complexity = p.complexity := by
-  induction p with
-  | output a => simp [swap, complexity]
-  | alice f P ih => simp only [swap, complexity, ih]
-  | bob f P ih => simp only [swap, complexity, ih]
+  induction p <;> simp [swap, complexity, *]
 
 /-- Embed a coin-flip public-coin protocol into a generalized
 public-coin protocol over `CoinTape` (with `β = Bool`
@@ -99,37 +93,16 @@ theorem ofProtocol_run {n : ℕ}
     (x : X) (y : Y) (ω : CoinTape n) :
     (ofProtocol p).run x y ω =
       p.run x y ω := by
-  induction p with
-  | output a =>
-    simp [ofProtocol, run, PublicCoin.Protocol.run]
-  | alice f P ih =>
-    simp [ofProtocol, run, PublicCoin.Protocol.run, ih]
-  | bob f P ih =>
-    simp [ofProtocol, run, PublicCoin.Protocol.run, ih]
+  induction p <;> simp [ofProtocol, run, PublicCoin.Protocol.run, *]
 
 theorem ofProtocol_complexity {n : ℕ}
     (p : PublicCoin.Protocol n X Y α) :
     (ofProtocol p).complexity = p.complexity := by
-  induction p with
-  | output a =>
-    simp [ofProtocol, complexity,
-      PublicCoin.Protocol.complexity]
-  | alice f P ih =>
-    simp only [ofProtocol, complexity,
-      PublicCoin.Protocol.complexity, ih]
-    have : Nat.clog 2 (Fintype.card Bool) = 1 := by decide
-    rw [this]
-    have : (Finset.univ : Finset Bool) = {false, true} := by
-      ext b; simp
-    simp [this]
-  | bob f P ih =>
-    simp only [ofProtocol, complexity,
-      PublicCoin.Protocol.complexity, ih]
-    have : Nat.clog 2 (Fintype.card Bool) = 1 := by decide
-    rw [this]
-    have : (Finset.univ : Finset Bool) = {false, true} := by
-      ext b; simp
-    simp [this]
+  induction p <;> simp only [ofProtocol, complexity,
+    PublicCoin.Protocol.complexity, Fintype.univ_bool,
+    Finset.sup_insert, Finset.sup_singleton,
+    show Nat.clog 2 (Fintype.card Bool) = 1 from by decide,
+    Nat.max_comm, *]
 
 /-- Every coin-flip public-coin protocol can be viewed as a generalized
 public-coin protocol with the same run behavior and complexity. -/
@@ -194,35 +167,15 @@ theorem toFiniteMessage_run {n : ℕ}
     (x : X) (y : Y) (ω : CoinTape n) :
     (p.toFiniteMessage φ).run x y ω =
       p.run x y (φ ω) := by
-  induction p with
-  | output a =>
-    simp [toFiniteMessage, run,
-      PublicCoin.FiniteMessage.Protocol.run]
-  | alice f P ih =>
-    simp only [toFiniteMessage,
-      PublicCoin.FiniteMessage.Protocol.run, run]
-    exact ih _
-  | bob f P ih =>
-    simp only [toFiniteMessage,
-      PublicCoin.FiniteMessage.Protocol.run, run]
-    exact ih _
+  induction p <;> simp [toFiniteMessage, run,
+    PublicCoin.FiniteMessage.Protocol.run, *]
 
 theorem toFiniteMessage_complexity {n : ℕ}
     (φ : CoinTape n → Ω)
     (p : Protocol Ω X Y α) :
     (p.toFiniteMessage φ).complexity = p.complexity := by
-  induction p with
-  | output a =>
-    simp [toFiniteMessage, complexity,
-      PublicCoin.FiniteMessage.Protocol.complexity]
-  | alice f P ih =>
-    simp only [toFiniteMessage,
-      PublicCoin.FiniteMessage.Protocol.complexity,
-      complexity, ih]
-  | bob f P ih =>
-    simp only [toFiniteMessage,
-      PublicCoin.FiniteMessage.Protocol.complexity,
-      complexity, ih]
+  induction p <;> simp only [toFiniteMessage, complexity,
+    PublicCoin.FiniteMessage.Protocol.complexity, *]
 
 /-- If a general public-coin finite-message protocol `ε`-satisfies
 `Q` under the measure on `Ω`, then for any `ε' > ε` there exists a
