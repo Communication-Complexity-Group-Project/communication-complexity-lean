@@ -25,7 +25,7 @@ We plan to follow the standard textbook development (primarily Kushilevitz–Nis
 - **Randomized upper bounds:** For equality, the classic $O(\log n)$-bit public-coin protocol via fingerprinting. For other functions, appropriate protocol constructions.
 - **Randomized lower bounds:** Distributional complexity and Yao's minimax principle. For disjointness, corruption-based or information-theoretic arguments. For inner product, reduction from or direct argument.
 
-Key lemmas include: the rectangle partition theorem, log-rank lower bound, balanced simulation (Theorem 1.7 of Rao–Yehudayoff), single-coin approximation for reducing general probability spaces to coin flips, and protocol composition with additive complexity.
+Key lemmas include: the rectangle partition theorem, log-rank lower bound, single-coin approximation for reducing general probability spaces to coin flips, and protocol composition with additive complexity.
 
 ## 4. Lean Formalization Plan
 
@@ -38,7 +38,6 @@ We have already built substantial infrastructure, organized as follows:
 - Rectangle theory: `IsRectangle`, `IsMonoPartition`, the rectangle partition theorem, and `communicationComplexity_lower_bound`
 - `log_rank_lower_bound` — $D(f) \geq \lceil \log_2 \text{rank}(f) \rceil$
 - `communicationComplexity_eq` for equality — $D(\text{EQ}_n) = n + 1$
-- Balanced simulation (Theorem 1.7) and balanced subtree lemma (Lemma 1.8)
 - `single_coin_approx` — approximation of arbitrary finite probability spaces by coin flips
 - `communicationComplexity_mono` — monotonicity in error parameter
 - Protocol composition (`prod`, `pi`, `comapRandomness`, `map`, `bind`)
