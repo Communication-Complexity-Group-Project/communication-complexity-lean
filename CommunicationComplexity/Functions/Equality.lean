@@ -60,8 +60,8 @@ theorem le_communicationComplexity (n : ℕ) (hn : 1 ≤ n) :
   -- The image of rect has size 2^n
   have himage_card :
       Set.ncard (Set.range rect) = 2 ^ n := by
-    rw [Set.ncard_range_of_injective hrect_inj]
-    simp [Fintype.card_bool, Fintype.card_fin]
+    simpa [Fintype.card_bool, Fintype.card_fin] using
+      Set.ncard_range_of_injective hrect_inj
   -- Find a "false" rectangle containing (x0, y0) with x0 ≠ y0
   have hx : (fun _ : Fin n => true) ≠ (fun _ : Fin n => false) := by
     intro h; have := congr_fun h ⟨0, hn⟩; simp at this
@@ -74,15 +74,13 @@ theorem le_communicationComplexity (n : ℕ) (hn : 1 ≤ n) :
     rintro ⟨z, rfl⟩
     have := monoPartition_values_eq hPart (hrect_mem z) (hrect_in z) hR0_in
     simp [equality, hx] at this
-  -- range rect ∪ {R0} ⊆ Part, giving 2^n < |Part|
-  have hinsert : Set.range rect ∪ {R0} ⊆ Part :=
-    Set.union_subset (fun R ⟨x, hx⟩ => hx ▸ hrect_mem x)
-      (Set.singleton_subset_iff.mpr hR0_mem)
+  -- insert R0 into range rect ⊆ Part, giving 2^n < |Part|
+  have hinsert : insert R0 (Set.range rect) ⊆ Part :=
+    Set.insert_subset hR0_mem (fun R ⟨x, hx⟩ => hx ▸ hrect_mem x)
   calc 2 ^ n
       = Set.ncard (Set.range rect) := himage_card.symm
-    _ < Set.ncard (Set.range rect ∪ {R0}) := by
-        rw [Set.ncard_union_eq (Set.disjoint_singleton_right.mpr
-          hR0_not_diag), Set.ncard_singleton]; omega
+    _ < Set.ncard (insert R0 (Set.range rect)) := by
+        rw [Set.ncard_insert_of_notMem hR0_not_diag, himage_card]; omega
     _ ≤ Set.ncard Part :=
         Set.ncard_le_ncard hinsert (Set.toFinite Part)
 

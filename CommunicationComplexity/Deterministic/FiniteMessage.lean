@@ -66,10 +66,10 @@ private theorem completeTreeAlice_run (d : ℕ) (query : Fin d → X → Bool)
     rw [ih]
     -- Goal: (Q (Fin.cons (query 0 x) ...)).run x y = (Q (fun i => query i x)).run x y
     -- Suffices to show the arguments to Q are equal
-    have : Fin.cons (query 0 x) (fun i => (query ∘ Fin.succ) i x) = fun i => query i x := by
-      ext i; refine Fin.cases ?_ ?_ i
-      · simp [Fin.cons]
-      · intro j; simp [Fin.cons, Function.comp]
+    have :
+        Fin.cons (query 0 x) (fun i => (query ∘ Fin.succ) i x) =
+        fun i => query i x := by
+      simpa [Function.comp] using (Fin.cons_self_tail (fun i => query i x))
     rw [this]
 
 private theorem completeTreeAlice_complexity (d : ℕ) (query : Fin d → X → Bool)
@@ -79,18 +79,13 @@ private theorem completeTreeAlice_complexity (d : ℕ) (query : Fin d → X → 
   induction d with
   | zero =>
     simp only [completeTreeAlice, Nat.zero_add]
-    have huniq : ∀ (f : Fin 0 → Bool), f = Fin.elim0 := by
-      intro f; funext i; exact i.elim0
     have : (Finset.univ : Finset (Fin 0 → Bool)) = {Fin.elim0} := by
-      ext x; constructor
-      · intro _; simp [huniq x]
-      · intro _; exact Finset.mem_univ x
+      simpa using (univ_eq_singleton_of_card_one Fin.elim0 (by simp))
     rw [this, Finset.sup_singleton]
   | succ d ih =>
     -- Unfold to 1 + max (rec false).complexity (rec true).complexity
     simp only [completeTreeAlice, Deterministic.Protocol.complexity]
     rw [ih, ih, Nat.succ_add, Nat.add_max_add_left]
-    -- Need: max(sup over false-cons, sup over true-cons) = sup over all Fin (d+1) → Bool
     have hsplit : Finset.univ.sup (fun bits : Fin (d + 1) → Bool => (Q bits).complexity) =
         max (Finset.univ.sup (fun bits : Fin d → Bool => (Q (Fin.cons false bits)).complexity))
             (Finset.univ.sup (fun bits : Fin d → Bool => (Q (Fin.cons true bits)).complexity)) := by
@@ -229,29 +224,15 @@ def ofProtocol : Deterministic.Protocol X Y α → Protocol X Y α
 
 theorem ofProtocol_run (p : Deterministic.Protocol X Y α) (x : X) (y : Y) :
     (ofProtocol p).run x y = p.run x y := by
-  induction p with
-  | output val => simp [ofProtocol, run, Deterministic.Protocol.run]
-  | alice f P ih => simp [ofProtocol, run, Deterministic.Protocol.run, ih]
-  | bob f P ih => simp [ofProtocol, run, Deterministic.Protocol.run, ih]
+  induction p <;> simp [ofProtocol, run, Deterministic.Protocol.run, *]
 
 theorem ofProtocol_complexity (p : Deterministic.Protocol X Y α) :
     (ofProtocol p).complexity = p.complexity := by
-  induction p with
-  | output val => simp [ofProtocol, complexity, Deterministic.Protocol.complexity]
-  | alice f P ih =>
-    simp only [ofProtocol, complexity, Deterministic.Protocol.complexity, ih]
-    -- clog 2 |Bool| = 1, and sup over Bool = max
-    have : Nat.clog 2 (Fintype.card Bool) = 1 := by decide
-    rw [this]
-    -- Finset.univ for Bool is {false, true}, so sup = max
-    have : (Finset.univ : Finset Bool) = {false, true} := by ext b; simp
-    simp [this]
-  | bob f P ih =>
-    simp only [ofProtocol, complexity, Deterministic.Protocol.complexity, ih]
-    have : Nat.clog 2 (Fintype.card Bool) = 1 := by decide
-    rw [this]
-    have : (Finset.univ : Finset Bool) = {false, true} := by ext b; simp
-    simp [this]
+  induction p <;> simp only [ofProtocol, complexity,
+    Deterministic.Protocol.complexity, Fintype.univ_bool,
+    Finset.sup_insert, Finset.sup_singleton,
+    show Nat.clog 2 (Fintype.card Bool) = 1 from by decide,
+    Nat.max_comm, *]
 
 /-- Every binary protocol can be viewed as a generalized protocol with the same
 run behavior and complexity (using `β = Bool` at each step). -/

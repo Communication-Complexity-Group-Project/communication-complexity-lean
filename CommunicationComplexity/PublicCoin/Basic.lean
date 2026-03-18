@@ -50,18 +50,12 @@ def swap : Protocol n X Y α → Protocol n Y X α
 theorem swap_run (p : Protocol n X Y α) (x : X) (y : Y)
     (ω : CoinTape n) :
     p.swap.run y x ω = p.run x y ω := by
-  induction p with
-  | output a => simp [swap, run]
-  | alice f P ih => simp [swap, run, ih]
-  | bob f P ih => simp [swap, run, ih]
+  induction p <;> simp [swap, run, *]
 
 @[simp]
 theorem swap_complexity (p : Protocol n X Y α) :
     p.swap.complexity = p.complexity := by
-  induction p with
-  | output a => simp [swap, complexity]
-  | alice f P ih => simp [swap, complexity, ih]
-  | bob f P ih => simp [swap, complexity, ih]
+  induction p <;> simp [swap, complexity, *]
 
 open Classical in
 /-- A public-coin protocol `ε`-computes a function `f` if for every

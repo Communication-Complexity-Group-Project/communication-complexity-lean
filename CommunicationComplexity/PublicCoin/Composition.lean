@@ -20,19 +20,13 @@ def map [Fintype Ω] (g : α → β) :
 theorem map_run [Fintype Ω] (g : α → β)
     (p : Protocol Ω X Y α) (x : X) (y : Y) (ω : Ω) :
     (p.map g).run x y ω = g (p.run x y ω) := by
-  induction p with
-  | output a => simp [map, run]
-  | alice f P ih => simp only [map, run]; exact ih _
-  | bob f P ih => simp only [map, run]; exact ih _
+  induction p <;> simp [map, run, *]
 
 @[simp]
 theorem map_complexity [Fintype Ω] (g : α → β)
     (p : Protocol Ω X Y α) :
     (p.map g).complexity = p.complexity := by
-  induction p with
-  | output a => simp [map, complexity]
-  | alice f P ih => simp only [map, complexity, ih]
-  | bob f P ih => simp only [map, complexity, ih]
+  induction p <;> simp [map, complexity, *]
 
 variable {Ω' : Type*}
 
@@ -52,19 +46,13 @@ theorem comapRandomness_run [Fintype Ω] [Fintype Ω']
     (h : Ω' → Ω) (p : Protocol Ω X Y α)
     (x : X) (y : Y) (ω : Ω') :
     (p.comapRandomness h).run x y ω = p.run x y (h ω) := by
-  induction p with
-  | output a => simp [comapRandomness, run]
-  | alice f P ih => simp only [comapRandomness, run]; exact ih _
-  | bob f P ih => simp only [comapRandomness, run]; exact ih _
+  induction p <;> simp [comapRandomness, run, *]
 
 @[simp]
 theorem comapRandomness_complexity [Fintype Ω] [Fintype Ω']
     (h : Ω' → Ω) (p : Protocol Ω X Y α) :
     (p.comapRandomness h).complexity = p.complexity := by
-  induction p with
-  | output a => simp [comapRandomness, complexity]
-  | alice f P ih => simp only [comapRandomness, complexity, ih]
-  | bob f P ih => simp only [comapRandomness, complexity, ih]
+  induction p <;> simp [comapRandomness, complexity, *]
 
 variable [Fintype Ω₁] [Fintype Ω₂]
 
@@ -90,10 +78,7 @@ theorem prod_run
     (x : X) (y : Y) (ω : Ω₁ × Ω₂) :
     (p1.prod p2).run x y ω =
       (p1.run x y ω.1, p2.run x y ω.2) := by
-  induction p1 with
-  | output a1 => simp [prod, run]
-  | alice f P ih => simp only [prod, run]; exact ih _
-  | bob f P ih => simp only [prod, run]; exact ih _
+  induction p1 <;> simp [prod, run, *]
 
 private theorem finset_sup_add_const {ι : Type*} [Fintype ι] [Nonempty ι]
     (f : ι → ℕ) (c : ℕ) :
@@ -134,10 +119,7 @@ theorem bind_run [Fintype Ω]
     (p : Protocol Ω X Y α) (q : α → Protocol Ω X Y β)
     (x : X) (y : Y) (ω : Ω) :
     (p.bind q).run x y ω = (q (p.run x y ω)).run x y ω := by
-  induction p with
-  | output a => simp [bind, run]
-  | alice f P ih => simp only [bind, run]; exact ih _
-  | bob f P ih => simp only [bind, run]; exact ih _
+  induction p <;> simp [bind, run, *]
 
 variable {k : ℕ} {Ωf : Fin k → Type*} [∀ i, Fintype (Ωf i)]
   {αf : Fin k → Type*}
@@ -185,9 +167,7 @@ theorem pi_run
     ext i; exact i.elim0
   | succ k ih =>
     simp only [pi, bind_run, comapRandomness_run, map_run, ih]
-    ext i; refine Fin.cases ?_ ?_ i
-    · simp [Fin.cons]
-    · intro j; simp [Fin.cons]
+    ext i; refine Fin.cases ?_ ?_ i <;> simp [Fin.cons]
 
 theorem pi_complexity
     (p : (i : Fin k) → Protocol (Ωf i) X Y (αf i)) :

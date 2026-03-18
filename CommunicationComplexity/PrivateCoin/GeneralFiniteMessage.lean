@@ -67,18 +67,12 @@ def swap : Protocol Ω_X Ω_Y X Y α → Protocol Ω_Y Ω_X Y X α
 theorem swap_run (p : Protocol Ω_X Ω_Y X Y α)
     (x : X) (y : Y) (ω_x : Ω_X) (ω_y : Ω_Y) :
     p.swap.run y x ω_y ω_x = p.run x y ω_x ω_y := by
-  induction p with
-  | output a => simp [swap, run]
-  | alice f P ih => simp only [swap, run]; exact ih _
-  | bob f P ih => simp only [swap, run]; exact ih _
+  induction p <;> simp [swap, run, *]
 
 @[simp]
 theorem swap_complexity (p : Protocol Ω_X Ω_Y X Y α) :
     p.swap.complexity = p.complexity := by
-  induction p with
-  | output a => simp [swap, complexity]
-  | alice f P ih => simp only [swap, complexity, ih]
-  | bob f P ih => simp only [swap, complexity, ih]
+  induction p <;> simp [swap, complexity, *]
 
 /-- A general finite-message protocol `ε`-satisfies a predicate `Q`
 if for every input `(x, y)`, the probability that
@@ -127,37 +121,16 @@ theorem ofProtocol_run {nX nY : ℕ}
     (ω_x : CoinTape nX) (ω_y : CoinTape nY) :
     (ofProtocol p).run x y ω_x ω_y =
       p.run x y ω_x ω_y := by
-  induction p with
-  | output a =>
-    simp [ofProtocol, run, PrivateCoin.Protocol.run]
-  | alice f P ih =>
-    simp [ofProtocol, run, PrivateCoin.Protocol.run, ih]
-  | bob f P ih =>
-    simp [ofProtocol, run, PrivateCoin.Protocol.run, ih]
+  induction p <;> simp [ofProtocol, run, PrivateCoin.Protocol.run, *]
 
 theorem ofProtocol_complexity {nX nY : ℕ}
     (p : PrivateCoin.Protocol nX nY X Y α) :
     (ofProtocol p).complexity = p.complexity := by
-  induction p with
-  | output a =>
-    simp [ofProtocol, complexity,
-      PrivateCoin.Protocol.complexity]
-  | alice f P ih =>
-    simp only [ofProtocol, complexity,
-      PrivateCoin.Protocol.complexity, ih]
-    have : Nat.clog 2 (Fintype.card Bool) = 1 := by decide
-    rw [this]
-    have : (Finset.univ : Finset Bool) = {false, true} := by
-      ext b; simp
-    simp [this]
-  | bob f P ih =>
-    simp only [ofProtocol, complexity,
-      PrivateCoin.Protocol.complexity, ih]
-    have : Nat.clog 2 (Fintype.card Bool) = 1 := by decide
-    rw [this]
-    have : (Finset.univ : Finset Bool) = {false, true} := by
-      ext b; simp
-    simp [this]
+  induction p <;> simp only [ofProtocol, complexity,
+    PrivateCoin.Protocol.complexity, Fintype.univ_bool,
+    Finset.sup_insert, Finset.sup_singleton,
+    show Nat.clog 2 (Fintype.card Bool) = 1 from by decide,
+    Nat.max_comm, *]
 
 /-- Every coin-flip randomized protocol can be viewed as a generalized
 randomized protocol with the same run behavior and complexity. -/
@@ -193,33 +166,15 @@ theorem toFiniteMessage_run {nX nY : ℕ}
     (x : X) (y : Y) (ω_x : CoinTape nX) (ω_y : CoinTape nY) :
     (p.toFiniteMessage φ_X φ_Y).run x y ω_x ω_y =
       p.run x y (φ_X ω_x) (φ_Y ω_y) := by
-  induction p with
-  | output a =>
-    simp [toFiniteMessage, run,
-      PrivateCoin.FiniteMessage.Protocol.run]
-  | alice f P ih =>
-    simp only [toFiniteMessage, PrivateCoin.FiniteMessage.Protocol.run, run]
-    exact ih _
-  | bob f P ih =>
-    simp only [toFiniteMessage, PrivateCoin.FiniteMessage.Protocol.run, run]
-    exact ih _
+  induction p <;> simp [toFiniteMessage, run,
+    PrivateCoin.FiniteMessage.Protocol.run, *]
 
 theorem toFiniteMessage_complexity {nX nY : ℕ}
     (φ_X : CoinTape nX → Ω_X) (φ_Y : CoinTape nY → Ω_Y)
     (p : Protocol Ω_X Ω_Y X Y α) :
     (p.toFiniteMessage φ_X φ_Y).complexity = p.complexity := by
-  induction p with
-  | output a =>
-    simp [toFiniteMessage, complexity,
-      PrivateCoin.FiniteMessage.Protocol.complexity]
-  | alice f P ih =>
-    simp only [toFiniteMessage,
-      PrivateCoin.FiniteMessage.Protocol.complexity,
-      complexity, ih]
-  | bob f P ih =>
-    simp only [toFiniteMessage,
-      PrivateCoin.FiniteMessage.Protocol.complexity,
-      complexity, ih]
+  induction p <;> simp only [toFiniteMessage, complexity,
+    PrivateCoin.FiniteMessage.Protocol.complexity, *]
 
 end PrivateCoin.GeneralFiniteMessage.Protocol
 
@@ -452,12 +407,10 @@ theorem single_coin_approx
       (volume T).toReal =
       (Finset.univ.filter (fun ω : CoinTape n => ω ∈ T)).card / N := by
     intro T
-    -- volume on CoinTape n is uniformOn Set.univ
     change (ProbabilityTheory.uniformOn Set.univ T).toReal = _
     rw [ProbabilityTheory.uniformOn_univ]
     rw [ENNReal.toReal_div]
     congr 1
-    -- Measure.count T → filter card
     rw [Measure.count_apply MeasurableSet.of_discrete,
       Set.encard_eq_coe_toFinset_card T]
     simp only [ENat.toENNReal_coe, ENNReal.toReal_natCast]

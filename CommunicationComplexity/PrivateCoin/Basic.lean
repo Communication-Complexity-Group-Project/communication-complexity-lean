@@ -51,18 +51,12 @@ def swap : Protocol nX nY X Y α → Protocol nY nX Y X α
 theorem swap_run (p : Protocol nX nY X Y α) (x : X) (y : Y)
     (ω_x : CoinTape nX) (ω_y : CoinTape nY) :
     p.swap.run y x ω_y ω_x = p.run x y ω_x ω_y := by
-  induction p with
-  | output a => simp [swap, run]
-  | alice f P ih => simp [swap, run, ih]
-  | bob f P ih => simp [swap, run, ih]
+  induction p <;> simp [swap, run, *]
 
 @[simp]
 theorem swap_complexity (p : Protocol nX nY X Y α) :
     p.swap.complexity = p.complexity := by
-  induction p with
-  | output a => simp [swap, complexity]
-  | alice f P ih => simp [swap, complexity, ih]
-  | bob f P ih => simp [swap, complexity, ih]
+  induction p <;> simp [swap, complexity, *]
 
 /-- A randomized protocol `ε`-satisfies a predicate `Q` if for every
 input `(x, y)`, the probability that `Q x y (p.run ...)` fails

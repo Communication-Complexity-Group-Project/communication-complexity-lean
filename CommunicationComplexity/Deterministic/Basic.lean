@@ -48,18 +48,12 @@ def swap : Protocol X Y α → Protocol Y X α
 @[simp]
 theorem swap_run (p : Protocol X Y α) (x : X) (y : Y) :
     p.swap.run y x = p.run x y := by
-  induction p with
-  | output val => simp [swap, run]
-  | alice f P ih => simp [swap, run, ih]
-  | bob f P ih => simp [swap, run, ih]
+  induction p <;> simp [swap, run, *]
 
 @[simp]
 theorem swap_complexity (p : Protocol X Y α) :
     p.swap.complexity = p.complexity := by
-  induction p with
-  | output val => simp [swap, complexity]
-  | alice f P ih => simp [swap, complexity, ih]
-  | bob f P ih => simp [swap, complexity, ih]
+  induction p <;> simp [swap, complexity, *]
 
 /-- An alice protocol on `X × Y` can be converted into a bob protocol on `Y × X`
 with the same run behavior (up to argument swap) and complexity.

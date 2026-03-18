@@ -23,36 +23,14 @@ private theorem Deterministic.Protocol.toPrivateCoin_run
     (x : X) (y : Y)
     (ω_x : CoinTape 0) (ω_y : CoinTape 0) :
     p.toPrivateCoin.run x y ω_x ω_y = p.run x y := by
-  induction p with
-  | output val =>
-    simp [Deterministic.Protocol.toPrivateCoin,
-      PrivateCoin.Protocol.run,
-      Deterministic.Protocol.run]
-  | alice f P ih =>
-    simp [Deterministic.Protocol.toPrivateCoin,
-      PrivateCoin.Protocol.run,
-      Deterministic.Protocol.run, ih]
-  | bob f P ih =>
-    simp [Deterministic.Protocol.toPrivateCoin,
-      PrivateCoin.Protocol.run,
-      Deterministic.Protocol.run, ih]
+  induction p <;> simp [Deterministic.Protocol.toPrivateCoin,
+    PrivateCoin.Protocol.run, Deterministic.Protocol.run, *]
 
 private theorem Deterministic.Protocol.toPrivateCoin_complexity
     {X Y α} (p : Deterministic.Protocol X Y α) :
     p.toPrivateCoin.complexity = p.complexity := by
-  induction p with
-  | output val =>
-    simp [Deterministic.Protocol.toPrivateCoin,
-      PrivateCoin.Protocol.complexity,
-      Deterministic.Protocol.complexity]
-  | alice f P ih =>
-    simp [Deterministic.Protocol.toPrivateCoin,
-      PrivateCoin.Protocol.complexity,
-      Deterministic.Protocol.complexity, ih]
-  | bob f P ih =>
-    simp [Deterministic.Protocol.toPrivateCoin,
-      PrivateCoin.Protocol.complexity,
-      Deterministic.Protocol.complexity, ih]
+  induction p <;> simp [Deterministic.Protocol.toPrivateCoin,
+    PrivateCoin.Protocol.complexity, Deterministic.Protocol.complexity, *]
 
 open Classical in
 theorem PrivateCoin.communicationComplexity_le_deterministic
@@ -69,16 +47,8 @@ theorem PrivateCoin.communicationComplexity_le_deterministic
     refine ⟨0, 0, p.toPrivateCoin, ?_, ?_⟩
     · -- ApproxComputes: error is 0 since protocol is deterministic
       intro x y
-      have hrun : ∀ ω : CoinTape 0 × CoinTape 0,
-          p.toPrivateCoin.run x y ω.1 ω.2 = f x y := by
-        intro ω
-        rw [Deterministic.Protocol.toPrivateCoin_run]
-        exact congr_fun (congr_fun hp x) y
-      -- The error set is empty since the protocol always returns f x y
-      have hempty : {ω : CoinTape 0 × CoinTape 0 |
-          p.toPrivateCoin.run x y ω.1 ω.2 ≠ f x y} = ∅ := by
-        ext ω; simp [hrun ω]
-      simp [hempty, hε]
+      have hp' : p.run x y = f x y := congr_fun (congr_fun hp x) y
+      simp [Deterministic.Protocol.toPrivateCoin_run, hp', hε]
     · rw [Deterministic.Protocol.toPrivateCoin_complexity]
       exact hc
 
