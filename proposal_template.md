@@ -2,17 +2,19 @@
 
 **Title:** Formalizing Communication Complexity: Foundations, Protocols, and Tight Bounds
 
-**Group Members:** Mihir Singhal
+**Group Members:** Lucy Horowitz, Timothe Kasriel, Mihir Singhal
 
 ---
 
 ## 1. Project Topic
 
-We formalize the foundations of two-party communication complexity, covering deterministic, private-coin, and public-coin models. Starting from protocol definitions and the rectangle method, we aim to prove tight upper and lower bounds (both deterministic and randomized) for important functions including equality, inner product, disjointness, indexing, and gap-Hamming distance.
+We formalize the foundations of two-party communication complexity, covering deterministic, private-coin, and public-coin models. Our primary aims are:
+1. To develop the foundational machinery of communication complexity, such as the rectangle partition structure and the log-rank lower bound.
+2. To prove tight upper and lower bounds (both deterministic and randomized) for important functions including equality, inner product, disjointness, indexing, and gap-Hamming distance.
 
 ## 2. Background and Motivation
 
-Communication complexity, introduced by Yao (1979), is a cornerstone of theoretical computer science with applications to circuit lower bounds, streaming algorithms, data structures, and property testing. The key functions we target (equality, inner product, disjointness, etc.) are among the most well-studied in the field, with tight bounds that illustrate fundamentally different proof techniques: combinatorial rectangle arguments, rank methods, corruption/information-theoretic methods, and distributional complexity. A formal library for these results would provide a verified foundation for one of TCS's most active areas.
+Communication complexity, introduced by Yao (1979), is a cornerstone of theoretical computer science with applications to circuit lower bounds, streaming algorithms, data structures, and property testing. The key functions we target (equality, inner product, disjointness, etc.) are among the most well-studied in the field, with tight bounds that illustrate fundamentally different proof techniques: combinatorial rectangle arguments, rank methods, corruption/information-theoretic methods, and distributional complexity. Also, the results for these functions in particular are often used in other fields (such as streaming lower bounds).
 
 ## 3. Proof Strategy
 
@@ -22,7 +24,6 @@ We plan to follow the standard textbook development (primarily Kushilevitz–Nis
 - **Randomized models (private and public coin):** Define $\varepsilon$-error protocols, communication complexity as an infimum, and monotonicity in $\varepsilon$. Establish reductions between models (deterministic $\Rightarrow$ private-coin $\Rightarrow$ public-coin).
 - **Randomized upper bounds:** For equality, the classic $O(\log n)$-bit public-coin protocol via fingerprinting. For other functions, appropriate protocol constructions.
 - **Randomized lower bounds:** Distributional complexity and Yao's minimax principle. For disjointness, corruption-based or information-theoretic arguments. For inner product, reduction from or direct argument.
-- **Composition:** Oblivious (product/pi) composition of protocols, used in amplification and reductions.
 
 Key lemmas include: the rectangle partition theorem, log-rank lower bound, balanced simulation (Theorem 1.7 of Rao–Yehudayoff), single-coin approximation for reducing general probability spaces to coin flips, and protocol composition with additive complexity.
 
@@ -55,10 +56,9 @@ We make heavy use of Mathlib for measure theory (`MeasureTheory`, `IsProbability
 
 ## 5. Potential Challenges
 
-- **Distributional complexity and Yao's minimax:** Formalizing the minimax theorem for two-player games (von Neumann's theorem) or a communication-specific version may require nontrivial convex analysis or linear programming duality, which has limited Mathlib support.
+- **Distributional complexity and Yao's minimax:** Formalizing the minimax theorem for two-player games (von Neumann's theorem) or a communication-specific version may require nontrivial convex analysis or linear programming duality, which has limited Mathlib support. It's possible we'll want to prove these using a different method.
+- **Dealing with probability spaces:** A lot of the combinatorial arguments in communication complexity will be fairly difficult to actually formalize using probability spaces.
 - **Information-theoretic arguments:** Lower bounds for disjointness and gap-Hamming use entropy, mutual information, and information-theoretic inequalities (e.g., chain rule, Fano's inequality). These may need new Mathlib infrastructure or careful formalization.
-- **Measure-theoretic subtleties:** Working with probability measures over finite types in Lean requires careful handling of `ENNReal`/`NNReal` coercions and `volume` on product spaces, as we have already encountered extensively.
-- **Dependent types in composition:** The k-fold protocol composition (`pi`) requires structural recursion over dependent types `(i : Fin k) → Ωf i`, which interacts poorly with Lean's typeclass resolution and necessitates arrow-style definitions.
 
 ## 6. References
 
