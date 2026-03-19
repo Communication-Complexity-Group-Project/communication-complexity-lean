@@ -84,7 +84,7 @@ private theorem prob_many_events_le
         field_simp
         ring
 
-variable {Ω X Y α : Type*} [Fintype Ω] [DecidableEq α]
+variable {Ω X Y α : Type*} [Fintype Ω]
   [Fintype X] [Fintype Y]
 
 /-- The number of random samples needed for derandomization via
@@ -95,6 +95,7 @@ noncomputable def derandomizationSamples
   ⌈Real.log (Fintype.card X * Fintype.card Y) /
     (2 * (c - 1) ^ 2 * ε ^ 2)⌉₊ + 1
 
+open Classical in
 /-- Chernoff + union bound derandomization: given a protocol that
 ε-computes f with c > 1, there exist t = O(log(|X|·|Y|)/((c-1)²ε²))
 randomness values such that for every input (x, y), at most a c·ε
@@ -105,10 +106,10 @@ theorem exists_good_randomness
     (p : Protocol Ω X Y α) (f : X → Y → α) (ε : ℝ) (c : ℝ)
     (hε : 0 < ε) (hε1 : ε < 1) (hc : 1 < c)
     (hp : p.ApproxComputes f ε) :
-    ∃ (t : ℕ) (ωs : Fin t → Ω),
-      t ≤ derandomizationSamples X Y ε c ∧
+    ∃ (ωs : Fin (derandomizationSamples X Y ε c) → Ω),
       ∀ (x : X) (y : Y),
-        ((Finset.univ.filter (fun i => p.run x y (ωs i) ≠ f x y)).card : ℝ) / t
+        ((Finset.univ.filter (fun i => p.run x y (ωs i) ≠ f x y)).card : ℝ) /
+          (derandomizationSamples X Y ε c)
           ≤ c * ε := by
   -- Choose t
   set t := derandomizationSamples X Y ε c with ht_def
@@ -244,7 +245,7 @@ theorem exists_good_randomness
     rw [div_le_iff₀ (by exact_mod_cast ht_pos : (0 : ℝ) < ↑t)]
     linarith
   obtain ⟨ωs, hωs⟩ := this
-  exact ⟨t, ωs, le_refl _, hωs⟩
+  exact ⟨ωs, hωs⟩
 
 end PublicCoin.GeneralFiniteMessage.Protocol
 
