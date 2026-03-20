@@ -1,4 +1,4 @@
-name: Build project and documentation
+name: Build and Deploy Documentation
 
 on:
   push:
@@ -7,11 +7,14 @@ on:
   pull_request:
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
 permissions:
-  contents: write # Read access to repository contents
-  id-token: write # Required to upload the site to GitHub Pages
-  pages: write # Write access to GitHub Pages
+  contents: read
+  id-token: write
+  pages: write
 
 jobs:
   build:
@@ -31,6 +34,28 @@ jobs:
         uses: leanprover-community/docgen-action@main
         with:
           build-page: true
-          deploy: true
+          deploy: false
           # Uncomment the next line if you wish to build a blueprint alongside your repository.
           # blueprint: true
+
+      - name: Configure GitHub Pages
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@v5
+
+      - name: Upload documentation artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .lake/build/doc
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
