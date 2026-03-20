@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   build:
-    if: github.repository == 'mihirsinghal/communication-complexity-lean'
+    if: github.repository == 'Communication-Complexity-Group-Project/communication-complexity-lean'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout project
@@ -46,7 +46,7 @@ jobs:
           path: .lake/build/doc
 
   deploy:
-    if: github.repository == 'mihirsinghal/communication-complexity-lean'
+    if: github.repository == 'Communication-Complexity-Group-Project/communication-complexity-lean'
     needs: build
     runs-on: ubuntu-latest
     environment:
