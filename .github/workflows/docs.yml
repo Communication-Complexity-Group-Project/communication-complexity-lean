@@ -36,15 +36,7 @@ jobs:
         uses: leanprover-community/docgen-action@v1
         with:
           project: docbuild
-          build-page: false
-
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload documentation artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: docbuild/.lake/build/doc
+          build-page: true
 
   deploy:
     if: github.repository == 'Communication-Complexity-Group-Project/communication-complexity-lean'
