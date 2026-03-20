@@ -1,4 +1,5 @@
 import CommunicationComplexity.CoinTape
+import CommunicationComplexity.Deterministic.Basic
 import Mathlib.Data.Real.Basic
 
 namespace CommunicationComplexity
@@ -7,65 +8,52 @@ open MeasureTheory ProbabilityTheory
 
 namespace PublicCoin
 
-/-- A randomized two-party communication protocol where both players
-have access to the same public coin flips. Both Alice and Bob see
-the shared `CoinTape n`. At each step, a player sends a bit
-depending on their input and the shared coins. -/
-inductive Protocol (n : ℕ) (X Y α : Type*) where
-  | output (a : α) : Protocol n X Y α
-  | alice
-      (f : X → CoinTape n → Bool)
-      (P : Bool → Protocol n X Y α) :
-      Protocol n X Y α
-  | bob
-      (f : Y → CoinTape n → Bool)
-      (P : Bool → Protocol n X Y α) :
-      Protocol n X Y α
+/-- A public-coin protocol is a deterministic protocol where both
+Alice and Bob see shared randomness `Ω`. Alice's input is `(ω, x)`
+and Bob's is `(ω, y)`. -/
+abbrev Protocol (Ω : Type*) (X Y α : Type*) :=
+  Deterministic.Protocol (Ω × X) (Ω × Y) α
 
 namespace Protocol
 
-variable {n : ℕ} {X Y α : Type*}
+variable {Ω : Type*} {X Y α : Type*}
 
-/-- Executes the public-coin protocol on inputs `x`, `y` with
-shared coin flips `ω`. -/
-def run (p : Protocol n X Y α) (x : X) (y : Y)
-    (ω : CoinTape n) : α :=
-  match p with
-  | .output a => a
-  | .alice f P => (P (f x ω)).run x y ω
-  | .bob f P => (P (f y ω)).run x y ω
-
-def complexity : Protocol n X Y α → ℕ
-  | .output _ => 0
-  | .alice _ P => 1 + max (P false).complexity (P true).complexity
-  | .bob _ P => 1 + max (P false).complexity (P true).complexity
-
-/-- Swaps the roles of Alice and Bob. The shared randomness is unchanged. -/
-def swap : Protocol n X Y α → Protocol n Y X α
-  | .output a => .output a
-  | .alice f P => .bob f (fun b => (P b).swap)
-  | .bob f P => .alice f (fun b => (P b).swap)
+/-- Execute a public-coin protocol on inputs `x`, `y` with
+shared randomness `ω`. -/
+def rrun (p : Protocol Ω X Y α) (x : X) (y : Y) (ω : Ω) : α :=
+  p.run (ω, x) (ω, y)
 
 @[simp]
-theorem swap_run (p : Protocol n X Y α) (x : X) (y : Y)
-    (ω : CoinTape n) :
-    p.swap.run y x ω = p.run x y ω := by
-  induction p <;> simp [swap, run, *]
+theorem rrun_eq (p : Protocol Ω X Y α) (x : X) (y : Y) (ω : Ω) :
+    p.rrun x y ω = p.run (ω, x) (ω, y) := rfl
 
-@[simp]
-theorem swap_complexity (p : Protocol n X Y α) :
-    p.swap.complexity = p.complexity := by
-  induction p <;> simp [swap, complexity, *]
-
-open Classical in
-/-- A public-coin protocol `ε`-computes a function `f` if for every
-input `(x, y)`, the probability (under the uniform coin-flip measure)
-of producing an incorrect answer is at most `ε`. -/
-def ApproxComputes
-    (p : Protocol n X Y α) (f : X → Y → α) (ε : ℝ) : Prop :=
+/-- A public-coin protocol `ε`-satisfies a predicate `Q` if for every
+input `(x, y)`, the probability that `Q x y (p.rrun ...)` fails
+is at most `ε`. -/
+def ApproxSatisfies
+    [MeasureSpace Ω]
+    (p : Protocol Ω X Y α) (Q : X → Y → α → Prop)
+    (ε : ℝ) : Prop :=
   ∀ x y,
-    (volume {ω : CoinTape n |
-      p.run x y ω ≠ f x y}).toReal ≤ ε
+    (volume {ω : Ω |
+      ¬Q x y (p.rrun x y ω)}).toReal ≤ ε
+
+/-- A public-coin protocol `ε`-computes a function `f` if for every
+input `(x, y)`, the probability (under the shared coin-flip measure)
+of producing an incorrect answer is at most `ε`. -/
+noncomputable def ApproxComputes
+    [MeasureSpace Ω]
+    (p : Protocol Ω X Y α) (f : X → Y → α) (ε : ℝ) : Prop :=
+  ∀ x y,
+    (volume {ω : Ω |
+      p.rrun x y ω ≠ f x y}).toReal ≤ ε
+
+theorem ApproxComputes_eq_ApproxSatisfies
+    [MeasureSpace Ω]
+    (p : Protocol Ω X Y α) (f : X → Y → α) (ε : ℝ) :
+    p.ApproxComputes f ε =
+      p.ApproxSatisfies (fun x y a => a = f x y) ε := by
+  simp only [ApproxComputes, ApproxSatisfies, ne_eq]
 
 end Protocol
 
