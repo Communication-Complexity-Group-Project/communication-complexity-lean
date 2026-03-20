@@ -36,7 +36,12 @@ jobs:
         uses: leanprover-community/docgen-action@main
         with:
           build-page: true
-          deploy: true
+          deploy: false
+
+      - name: Verify generated documentation
+        run: |
+          test -f .lake/build/doc/index.html
+          find .lake/build/doc -maxdepth 2 | sed -n '1,40p'
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
@@ -44,7 +49,7 @@ jobs:
       - name: Upload documentation artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docbuild/.lake/build/doc
+          path: .lake/build/doc
 
   deploy:
     needs: build
