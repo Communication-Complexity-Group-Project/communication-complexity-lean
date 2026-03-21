@@ -77,13 +77,13 @@ noncomputable def FiniteMessage.Protocol.newmanProtocol
     [IsProbabilityMeasure (volume : Measure Ω)]
     (p : FiniteMessage.Protocol Ω X Y α)
     (f : X → Y → α) (ε c : ℝ)
-    (hε : 0 < ε) (hε1 : ε < 1) (hc : 1 < c)
+    (hc : 1 < c)
     (hp : p.ApproxComputes f ε) :
     PrivateCoin.FiniteMessage.Protocol
       (newmanIndexSpace X Y ε c) Unit X Y α :=
   -- Choose good randomness values via Chernoff + union bound
   let ωs := (FiniteMessage.Protocol.exists_good_randomness
-    p f ε c hε hε1 hc hp).choose
+    p f ε c hc hp).choose
   -- Alice sends her random index i ∈ newmanIndexSpace to Bob,
   -- then both simulate with ωs(i)
   PrivateCoin.FiniteMessage.Protocol.alice
@@ -97,9 +97,9 @@ theorem FiniteMessage.Protocol.newmanProtocol_ApproxComputes
     [IsProbabilityMeasure (volume : Measure Ω)]
     (p : FiniteMessage.Protocol Ω X Y α)
     (f : X → Y → α) (ε c : ℝ)
-    (hε : 0 < ε) (hε1 : ε < 1) (hc : 1 < c)
+    (hc : 1 < c)
     (hp : p.ApproxComputes f ε) :
-    (p.newmanProtocol f ε c hε hε1 hc hp).ApproxComputes f (c * ε) := by
+    (p.newmanProtocol f ε c hc hp).ApproxComputes f (c * ε) := by
   -- ApproxComputes means: for all x y, P[rrun ≠ f x y] ≤ c * ε
   -- on the product space newmanIndexSpace × Unit
   intro x y
@@ -108,8 +108,8 @@ theorem FiniteMessage.Protocol.newmanProtocol_ApproxComputes
   simp only [PrivateCoin.FiniteMessage.Protocol.rrun,
     Deterministic.FiniteMessage.Protocol.run,
     Deterministic.FiniteMessage.Protocol.comap_run]
-  set ωs := (exists_good_randomness p f ε c hε hε1 hc hp).choose
-  have hωs := (exists_good_randomness p f ε c hε hε1 hc hp).choose_spec
+  set ωs := (exists_good_randomness p f ε c hc hp).choose
+  have hωs := (exists_good_randomness p f ε c hc hp).choose_spec
   -- The error set only depends on ω.1 (the index)
   have hset : {ω : newmanIndexSpace X Y ε c × Unit |
       p.run (ωs ω.1, x) (ωs ω.1, y) ≠ f x y} =
@@ -139,9 +139,9 @@ theorem FiniteMessage.Protocol.newmanProtocol_complexity
     [IsProbabilityMeasure (volume : Measure Ω)]
     (p : FiniteMessage.Protocol Ω X Y α)
     (f : X → Y → α) (ε c : ℝ)
-    (hε : 0 < ε) (hε1 : ε < 1) (hc : 1 < c)
+    (hc : 1 < c)
     (hp : p.ApproxComputes f ε) :
-    (p.newmanProtocol f ε c hε hε1 hc hp).complexity =
+    (p.newmanProtocol f ε c hc hp).complexity =
       Nat.clog 2 (FiniteMessage.Protocol.derandomizationSamples
         X Y ε c) + p.complexity := by
   unfold newmanProtocol PrivateCoin.FiniteMessage.Protocol.alice
@@ -161,7 +161,7 @@ plus O(log(|X|·|Y|)/ε²) bits. -/
 theorem newman
     {X Y α : Type*} [Fintype X] [Fintype Y]
     (f : X → Y → α) (ε ε' : ℝ) (c : ℝ)
-    (hε : 0 < ε) (hε1 : ε < 1) (hc : 1 < c)
+    (hc : 1 < c)
     (hε' : c * ε < ε') :
     PrivateCoin.communicationComplexity f ε' ≤
       PublicCoin.communicationComplexity f ε +
@@ -183,10 +183,10 @@ theorem newman
         Deterministic.FiniteMessage.Protocol.ofProtocol_run]
       exact hp x y
     -- Apply newmanProtocol: get a private-coin FM protocol that (c*ε)-computes f
-    let q := pfm.newmanProtocol f ε c hε hε1 hc hpfm_approx
+    let q := pfm.newmanProtocol f ε c hc hpfm_approx
     have hq_approx :=
       FiniteMessage.Protocol.newmanProtocol_ApproxComputes
-        pfm f ε c hε hε1 hc hpfm_approx
+        pfm f ε c hc hpfm_approx
     -- q (c*ε)-computes f with c*ε < ε', so we can use
     -- communicationComplexity_le_of_finiteMessage
     have hbound :=
@@ -198,7 +198,7 @@ theorem newman
     have hq_comp : q.complexity =
         Nat.clog 2 (FiniteMessage.Protocol.derandomizationSamples X Y ε c) +
           pfm.complexity :=
-      FiniteMessage.Protocol.newmanProtocol_complexity pfm f ε c hε hε1 hc hpfm_approx
+      FiniteMessage.Protocol.newmanProtocol_complexity pfm f ε c hc hpfm_approx
     set t_log := Nat.clog 2
       (FiniteMessage.Protocol.derandomizationSamples X Y ε c)
     -- Goal is: CC ≤ ↑n + ↑t_log
