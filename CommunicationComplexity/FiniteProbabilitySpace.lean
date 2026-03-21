@@ -1,4 +1,4 @@
-import Mathlib.Data.Finite.Defs
+import Mathlib.Data.Fintype.Basic
 import Mathlib.MeasureTheory.MeasurableSpace.Defs
 import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
 
@@ -8,8 +8,8 @@ namespace CommunicationComplexity
 
 class FiniteProbabilitySpace (Ω : Type*) where
   toMeasureSpace : MeasureSpace Ω
-  finite :
-    Finite Ω
+  fintype :
+    Fintype Ω
   discrete :
     @DiscreteMeasurableSpace Ω toMeasureSpace.toMeasurableSpace
   prob :
@@ -17,7 +17,7 @@ class FiniteProbabilitySpace (Ω : Type*) where
       toMeasureSpace.toMeasurableSpace toMeasureSpace.volume
 
 attribute [instance] FiniteProbabilitySpace.toMeasureSpace
-attribute [instance] FiniteProbabilitySpace.finite
+attribute [instance] FiniteProbabilitySpace.fintype
 attribute [instance] FiniteProbabilitySpace.discrete
 attribute [instance] FiniteProbabilitySpace.prob
 
@@ -25,12 +25,12 @@ attribute [instance] FiniteProbabilitySpace.prob
 def FiniteProbabilitySpace.of
     (Ω : Type*)
     [m : MeasureSpace Ω]
-    [Finite Ω]
+    [Fintype Ω]
     [DiscreteMeasurableSpace Ω]
     [IsProbabilityMeasure (volume : Measure Ω)] :
     FiniteProbabilitySpace Ω :=
 { toMeasureSpace := m
-  finite := inferInstance
+  fintype := inferInstance
   discrete := inferInstance
   prob := inferInstance }
 

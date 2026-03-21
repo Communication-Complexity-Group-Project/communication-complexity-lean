@@ -3,6 +3,7 @@ import Mathlib.Probability.Independence.Basic
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Data.NNReal.Basic
 import CommunicationComplexity.PublicCoin.FiniteMessage
+import CommunicationComplexity.FiniteProbabilitySpace
 
 /-!
 # Derandomization via Chernoff + Union Bound
@@ -94,8 +95,7 @@ open Classical in
 randomness values such that for every input (x, y), at most a c·ε
 fraction of them produce incorrect outputs. -/
 theorem exists_good_randomness
-    [MeasureSpace Ω] [DiscreteMeasurableSpace Ω]
-    [IsProbabilityMeasure (volume : Measure Ω)]
+    [FiniteProbabilitySpace Ω]
     (p : Protocol Ω X Y α) (f : X → Y → α) (ε : ℝ) (c : ℝ)
     (hc : 1 < c)
     (hp : p.ApproxComputes f ε) :

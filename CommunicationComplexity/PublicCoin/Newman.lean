@@ -1,4 +1,5 @@
 import CommunicationComplexity.PublicCoin.Derandomization
+import CommunicationComplexity.FiniteProbabilitySpace
 import CommunicationComplexity.PublicCoin.Complexity
 import CommunicationComplexity.PrivateCoin.Complexity
 import CommunicationComplexity.PrivateCoin.FiniteMessage
@@ -37,6 +38,10 @@ instance Unit.isProbabilityMeasure :
   constructor
   simp [volume, Unit.measureSpace, Measure.dirac_apply_of_mem (Set.mem_univ ())]
 
+noncomputable instance Unit.finiteProbabilitySpace :
+    FiniteProbabilitySpace Unit :=
+  FiniteProbabilitySpace.of Unit
+
 namespace PublicCoin
 
 /-- The number of random seeds Alice samples from in the Newman
@@ -65,16 +70,19 @@ noncomputable instance newmanIndexSpace.isProbabilityMeasure
   change IsProbabilityMeasure (ProbabilityTheory.uniformOn Set.univ)
   infer_instance
 
+noncomputable instance newmanIndexSpace.finiteProbabilitySpace
+    (X Y : Type*) [Fintype X] [Fintype Y] (ε c : ℝ) :
+    FiniteProbabilitySpace (newmanIndexSpace X Y ε c) :=
+  FiniteProbabilitySpace.of (newmanIndexSpace X Y ε c)
+
 /-- The Newman reduction: given a public-coin protocol that ε-computes f,
 construct a private-coin protocol where Alice samples a random index i
 from `newmanIndexSpace` and sends it to Bob. Both then simulate the
 public-coin protocol with the i-th seed from a fixed table of good
 randomness values (chosen via Chernoff + union bound). -/
 noncomputable def FiniteMessage.Protocol.newmanProtocol
-    {Ω X Y α : Type*} [Fintype Ω]
+    {Ω X Y α : Type*} [FiniteProbabilitySpace Ω]
     [Fintype X] [Fintype Y]
-    [MeasureSpace Ω] [DiscreteMeasurableSpace Ω]
-    [IsProbabilityMeasure (volume : Measure Ω)]
     (p : FiniteMessage.Protocol Ω X Y α)
     (f : X → Y → α) (ε c : ℝ)
     (hc : 1 < c)
@@ -91,10 +99,8 @@ noncomputable def FiniteMessage.Protocol.newmanProtocol
     (fun i => (p.toDeterministic (ωs i)).toPrivateCoin)
 
 theorem FiniteMessage.Protocol.newmanProtocol_ApproxComputes
-    {Ω X Y α : Type*} [Fintype Ω]
+    {Ω X Y α : Type*} [FiniteProbabilitySpace Ω]
     [Fintype X] [Fintype Y]
-    [MeasureSpace Ω] [DiscreteMeasurableSpace Ω]
-    [IsProbabilityMeasure (volume : Measure Ω)]
     (p : FiniteMessage.Protocol Ω X Y α)
     (f : X → Y → α) (ε c : ℝ)
     (hc : 1 < c)
@@ -133,10 +139,8 @@ theorem FiniteMessage.Protocol.newmanProtocol_ApproxComputes
   intro i; simp; rfl
 
 theorem FiniteMessage.Protocol.newmanProtocol_complexity
-    {Ω X Y α : Type*} [Fintype Ω]
+    {Ω X Y α : Type*} [FiniteProbabilitySpace Ω]
     [Fintype X] [Fintype Y]
-    [MeasureSpace Ω] [DiscreteMeasurableSpace Ω]
-    [IsProbabilityMeasure (volume : Measure Ω)]
     (p : FiniteMessage.Protocol Ω X Y α)
     (f : X → Y → α) (ε c : ℝ)
     (hc : 1 < c)
