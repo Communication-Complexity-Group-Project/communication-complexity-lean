@@ -1,7 +1,8 @@
-import CommunicationComplexity.FiniteProbabilitySpace
+import CommunicationComplexity.InformationTheory.Entropy
 import Mathlib.InformationTheory.KullbackLeibler.Basic
+import PFR.Kullback
 
-open MeasureTheory
+open MeasureTheory ProbabilityTheory
 
 open scoped ENNReal
 
@@ -190,3 +191,48 @@ theorem FiniteMeasureSpace.pmf_klDiv_eq_sum_log
       p.toProbabilityMeasure q.toProbabilityMeasure)
 
 end CommunicationComplexity
+
+namespace ProbabilityTheory
+
+open Classical in
+/-- On one-bit probability measures, Mathlib's `klDiv` to any full-support bit law agrees with
+the real-valued PFR `KLDiv` used by the entropy API. -/
+theorem toReal_klDiv_bool_eq_KLDiv
+    (μ ν : ProbabilityMeasure Bool)
+    (hν : ∀ b, (ν : Measure Bool).toPMF b ≠ 0) :
+    (InformationTheory.klDiv (μ : Measure Bool) (ν : Measure Bool)).toReal =
+      KL[id ; (μ : Measure Bool) # id ; (ν : Measure Bool)] := by
+  have hnonneg :
+      0 ≤ KL[id ; (μ : Measure Bool) # id ; (ν : Measure Bool)] := by
+    exact KLDiv_nonneg (μ := (μ : Measure Bool)) (μ' := (ν : Measure Bool))
+      (X := id) (Y := id) Measurable.of_discrete Measurable.of_discrete
+      (fun b hb => False.elim (hν b (by simpa [Measure.toPMF_apply] using hb)))
+  rw [CommunicationComplexity.FiniteMeasureSpace.probabilityMeasure_klDiv_eq_sum_log μ ν]
+  rw [if_neg]
+  · rw [ENNReal.toReal_ofReal]
+    · rw [KLDiv_eq_sum]
+      simp [Measure.toPMF_apply, Measure.real]
+    · simpa [KLDiv_eq_sum, Measure.toPMF_apply, Measure.real] using hnonneg
+  · rintro ⟨b, hb, -⟩
+    exact hν b hb
+
+open Classical in
+/-- Positive conditional fibers let Mathlib's one-bit KL divergence from the law of a Boolean
+random variable to any full-support reference bit law be read as the PFR real-valued `KLDiv` of
+the corresponding random variable. -/
+theorem toReal_klDiv_map_bool_eq_KLDiv_of_measureReal_ne_zero
+    {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω) [IsFiniteMeasure μ]
+    (X : Ω → Bool) (S : Set Ω) (ν : ProbabilityMeasure Bool)
+    (hX : Measurable X) (hS : μ.real S ≠ 0)
+    (hν : ∀ b, (ν : Measure Bool).toPMF b ≠ 0) :
+    (InformationTheory.klDiv (Measure.map X (μ[|S])) (ν : Measure Bool)).toReal =
+      KL[X ; μ[|S] # id ; (ν : Measure Bool)] := by
+  let μS : ProbabilityMeasure Ω :=
+    ⟨μ[|S], ProbabilityTheory.cond_isProbabilityMeasure
+      ((MeasureTheory.measureReal_ne_zero_iff (μ := μ) (s := S)).mp hS)⟩
+  have h :=
+    toReal_klDiv_bool_eq_KLDiv
+      (ProbabilityMeasure.map μS hX.aemeasurable) ν hν
+  simpa [μS, KLDiv] using h
+
+end ProbabilityTheory

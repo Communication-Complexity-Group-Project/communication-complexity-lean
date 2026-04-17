@@ -2391,7 +2391,6 @@ theorem disjointCondMeasure_measurePreserving_dualHardSample :
   rw [← Measure.real, dualHardSample_preimage_singleton,
     disjointCondMeasure_measureReal_singleton_dualHardSample]
 
-open Classical in
 /-- Conditioning on a subevent of disjointness is the same under the ambient hard distribution and
 under the hard distribution first conditioned on disjointness. -/
 theorem volume_cond_eq_disjointCondMeasure_cond_of_subset_disjointEvent
@@ -2404,7 +2403,6 @@ theorem volume_cond_eq_disjointCondMeasure_cond_of_subset_disjointEvent
   ext ω
   simp [hA]
 
-open Classical in
 /-- Conditioning on `(X_T,Y_T)=(0,0)` costs at most a factor `2` relative to conditioning only on
 `Y_T=false` under the disjoint distribution. This is the reweighting step before Markov in Claim
 6.21. -/
@@ -2671,49 +2669,6 @@ theorem uniformBool_toPMF_ne_zero (b : Bool) :
     simpa [Measure.toPMF_apply, Measure.real] using uniformBool_singleton b
   rw [hb] at hreal
   norm_num at hreal
-
-open Classical in
-/-- On one-bit probability measures, Mathlib's `klDiv` to the uniform bit law agrees with the
-real-valued PFR `KLDiv` used by the entropy API. -/
-theorem toReal_klDiv_bool_uniform_eq_KLDiv (μ : ProbabilityMeasure Bool) :
-    (InformationTheory.klDiv (μ : Measure Bool)
-        (uniformBool : Measure Bool)).toReal =
-      KL[id ; (μ : Measure Bool) # id ;
-        (uniformBool : Measure Bool)] := by
-  have hnonneg :
-      0 ≤ KL[id ; (μ : Measure Bool) # id ;
-        (uniformBool : Measure Bool)] := by
-    exact KLDiv_nonneg (μ := (μ : Measure Bool))
-      (μ' := (uniformBool : Measure Bool))
-      (X := id) (Y := id) Measurable.of_discrete Measurable.of_discrete
-      (fun b hb => False.elim (uniformBool_toPMF_ne_zero b (by
-        simpa [Measure.toPMF_apply] using hb)))
-  rw [FiniteMeasureSpace.probabilityMeasure_klDiv_eq_sum_log μ uniformBool]
-  rw [if_neg]
-  · rw [ENNReal.toReal_ofReal]
-    · rw [KLDiv_eq_sum]
-      simp [Measure.toPMF_apply, Measure.real]
-    · simpa [KLDiv_eq_sum, Measure.toPMF_apply, Measure.real] using hnonneg
-  · rintro ⟨b, hb, -⟩
-    exact uniformBool_toPMF_ne_zero b hb
-
-open Classical in
-/-- Positive conditional fibers let the Mathlib one-bit KL be read as the PFR real-valued
-`KLDiv` of the corresponding random variable. -/
-theorem toReal_klDiv_map_bool_uniform_eq_KLDiv_of_measureReal_ne_zero
-    {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω) [IsFiniteMeasure μ]
-    (X : Ω → Bool) (S : Set Ω) (hX : Measurable X) (hS : μ.real S ≠ 0) :
-    (InformationTheory.klDiv (Measure.map X (μ[|S]))
-        (uniformBool : Measure Bool)).toReal =
-      KL[X ; μ[|S] # id ;
-        (uniformBool : Measure Bool)] := by
-  let μS : ProbabilityMeasure Ω :=
-    ⟨μ[|S], ProbabilityTheory.cond_isProbabilityMeasure
-      ((MeasureTheory.measureReal_ne_zero_iff (μ := μ) (s := S)).mp hS)⟩
-  have h :=
-    toReal_klDiv_bool_uniform_eq_KLDiv
-      (ProbabilityMeasure.map μS hX.aemeasurable)
-  simpa [μS, KLDiv] using h
 
 /-- Uniform law on a bit-pair. -/
 noncomputable def uniformBoolPair : ProbabilityMeasure (Bool × Bool) :=
@@ -4542,9 +4497,10 @@ theorem integral_xFiberKL_disjointSpecialYFalse_eq_condKLDiv_zVariable
   by_cases hz :
       (disjointSpecialYFalseMeasure n).real ((zVariable n p) ⁻¹' {z}) = 0
   · simp [hz]
-  · rw [toReal_klDiv_map_bool_uniform_eq_KLDiv_of_measureReal_ne_zero
+  · rw [ProbabilityTheory.toReal_klDiv_map_bool_eq_KLDiv_of_measureReal_ne_zero
       (μ := disjointSpecialYFalseMeasure n) (X := specialX n)
-      (S := (zVariable n p) ⁻¹' {z}) Measurable.of_discrete hz]
+      (S := (zVariable n p) ⁻¹' {z}) uniformBool Measurable.of_discrete hz
+      uniformBool_toPMF_ne_zero]
 
 open Classical in
 /-- Flip only Alice's special-coordinate bit.  This preserves the coarse Claim 6.21 data
