@@ -17,62 +17,73 @@ namespace CommunicationComplexity
 
 /-- The real-valued Radon-Nikodym density used in the absolutely-continuous part of Pinsker. -/
 private noncomputable def rnDensity
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω) (x : Ω) : ℝ :=
-  (((μ : Measure Ω).rnDeriv (ν : Measure Ω) x).toReal)
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (x : Ω) : ℝ :=
+  ((μ.rnDeriv ν x).toReal)
 
 private theorem rnDensity_nonneg
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω) (x : Ω) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (x : Ω) :
     0 ≤ rnDensity μ ν x :=
   ENNReal.toReal_nonneg
 
 private theorem measurable_rnDensity
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :
     Measurable (rnDensity μ ν) := by
   unfold rnDensity
   fun_prop
 
 private theorem integrable_rnDensity
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω) :
-    Integrable (rnDensity μ ν) (ν : Measure Ω) := by
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :
+    Integrable (rnDensity μ ν) ν := by
   simpa [rnDensity] using
     (Measure.integrable_toReal_rnDeriv
-      (μ := (μ : Measure Ω)) (ν := (ν : Measure Ω)))
+      (μ := μ) (ν := ν))
 
 private theorem integral_rnDensity_eq_one_of_ac
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω)
-    (h_ac : (μ : Measure Ω) ≪ (ν : Measure Ω)) :
-    ∫ x, rnDensity μ ν x ∂(ν : Measure Ω) = 1 := by
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (h_ac : μ ≪ ν) :
+    ∫ x, rnDensity μ ν x ∂ν = 1 := by
   have h := Measure.integral_toReal_rnDeriv h_ac
   simpa [rnDensity] using h
 
 private theorem integrable_rnDensity_sub_one
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω) :
-    Integrable (fun x => rnDensity μ ν x - 1) (ν : Measure Ω) :=
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :
+    Integrable (fun x => rnDensity μ ν x - 1) ν :=
   (integrable_rnDensity μ ν).sub (integrable_const 1)
 
 private theorem integrable_abs_rnDensity_sub_one
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω) :
-    Integrable (fun x => |rnDensity μ ν x - 1|) (ν : Measure Ω) :=
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :
+    Integrable (fun x => |rnDensity μ ν x - 1|) ν :=
   (integrable_rnDensity_sub_one μ ν).abs
 
 private theorem integral_rnDensity_sub_one_eq_zero_of_ac
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω)
-    (h_ac : (μ : Measure Ω) ≪ (ν : Measure Ω)) :
-    ∫ x, rnDensity μ ν x - 1 ∂(ν : Measure Ω) = 0 := by
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (h_ac : μ ≪ ν) :
+    ∫ x, rnDensity μ ν x - 1 ∂ν = 0 := by
   rw [integral_sub (integrable_rnDensity μ ν) (integrable_const 1),
     integral_rnDensity_eq_one_of_ac μ ν h_ac]
   simp
 
 private theorem measureReal_sub_eq_setIntegral_rnDensity_sub_one
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω)
-    (h_ac : (μ : Measure Ω) ≪ (ν : Measure Ω)) (S : Set Ω) :
-    (μ : Measure Ω).real S - (ν : Measure Ω).real S =
-      ∫ x in S, (rnDensity μ ν x - 1) ∂(ν : Measure Ω) := by
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (h_ac : μ ≪ ν) (S : Set Ω) :
+    μ.real S - ν.real S =
+      ∫ x in S, (rnDensity μ ν x - 1) ∂ν := by
   have h_rn_int :
-      Integrable (rnDensity μ ν) ((ν : Measure Ω).restrict S) :=
+      Integrable (rnDensity μ ν) (ν.restrict S) :=
     (integrable_rnDensity μ ν).mono_measure Measure.restrict_le_self
   have h_one_int :
-      Integrable (fun _ : Ω => (1 : ℝ)) ((ν : Measure Ω).restrict S) :=
+      Integrable (fun _ : Ω => (1 : ℝ)) (ν.restrict S) :=
     integrable_const 1
   rw [integral_sub h_rn_int h_one_int]
   rw [← Measure.setIntegral_toReal_rnDeriv h_ac S, setIntegral_one_eq_measureReal]
@@ -160,67 +171,74 @@ private theorem sSup_abs_setIntegral_eq_nonneg_part_of_integral_eq_zero
   exact le_antisymm hupper_sSup hlower_sSup
 
 private noncomputable def densityAbsIntegral
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω) : ℝ :=
-  ∫ x, |rnDensity μ ν x - 1| ∂(ν : Measure Ω)
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] : ℝ :=
+  ∫ x, |rnDensity μ ν x - 1| ∂ν
 
 private def densityPositiveSet
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω) : Set Ω :=
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] : Set Ω :=
   {x | 1 ≤ rnDensity μ ν x}
 
 private theorem measurableSet_densityPositiveSet
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :
     MeasurableSet (densityPositiveSet μ ν) := by
   exact measurableSet_Ici.preimage (measurable_rnDensity μ ν)
 
 private noncomputable def densityPositiveIntegral
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω) : ℝ :=
-  ∫ x in densityPositiveSet μ ν, (rnDensity μ ν x - 1) ∂(ν : Measure Ω)
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] : ℝ :=
+  ∫ x in densityPositiveSet μ ν, (rnDensity μ ν x - 1) ∂ν
 
 private theorem tvDistanceSup_eq_densityPositiveIntegral_of_ac
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω)
-    (h_ac : (μ : Measure Ω) ≪ (ν : Measure Ω)) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (h_ac : μ ≪ ν) :
     tvDistanceSup μ ν = densityPositiveIntegral μ ν := by
   rw [tvDistanceSup]
   have h_range :
       (Set.range fun S : {S : Set Ω // MeasurableSet S} =>
-        |(μ : Measure Ω).real (S : Set Ω) - (ν : Measure Ω).real (S : Set Ω)|) =
+        |μ.real (S : Set Ω) - ν.real (S : Set Ω)|) =
       (Set.range fun S : {S : Set Ω // MeasurableSet S} =>
-        |∫ x in (S : Set Ω), (rnDensity μ ν x - 1) ∂(ν : Measure Ω)|) := by
+        |∫ x in (S : Set Ω), (rnDensity μ ν x - 1) ∂ν|) := by
     ext r
     constructor
     · rintro ⟨S, rfl⟩
       refine ⟨S, ?_⟩
-      change |∫ x in (S : Set Ω), (rnDensity μ ν x - 1) ∂(ν : Measure Ω)| =
-        |(μ : Measure Ω).real (S : Set Ω) - (ν : Measure Ω).real (S : Set Ω)|
+      change |∫ x in (S : Set Ω), (rnDensity μ ν x - 1) ∂ν| =
+        |μ.real (S : Set Ω) - ν.real (S : Set Ω)|
       rw [← measureReal_sub_eq_setIntegral_rnDensity_sub_one μ ν h_ac (S : Set Ω)]
     · rintro ⟨S, rfl⟩
       refine ⟨S, ?_⟩
-      change |(μ : Measure Ω).real (S : Set Ω) - (ν : Measure Ω).real (S : Set Ω)| =
-        |∫ x in (S : Set Ω), (rnDensity μ ν x - 1) ∂(ν : Measure Ω)|
+      change |μ.real (S : Set Ω) - ν.real (S : Set Ω)| =
+        |∫ x in (S : Set Ω), (rnDensity μ ν x - 1) ∂ν|
       rw [measureReal_sub_eq_setIntegral_rnDensity_sub_one μ ν h_ac (S : Set Ω)]
   rw [h_range]
   have hsup :=
     sSup_abs_setIntegral_eq_nonneg_part_of_integral_eq_zero
-      (μ := (ν : Measure Ω)) (g := fun x => rnDensity μ ν x - 1)
+      (μ := ν) (g := fun x => rnDensity μ ν x - 1)
       ((measurable_rnDensity μ ν).sub measurable_const)
       (integrable_rnDensity_sub_one μ ν)
       (integral_rnDensity_sub_one_eq_zero_of_ac μ ν h_ac)
   simpa [densityPositiveIntegral, densityPositiveSet, sub_nonneg] using hsup
 
 private theorem tvDistance_eq_densityPositiveIntegral_of_ac
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω)
-    (h_ac : (μ : Measure Ω) ≪ (ν : Measure Ω)) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (h_ac : μ ≪ ν) :
     tvDistance μ ν = densityPositiveIntegral μ ν := by
   rw [TVDistance.tvDistance_eq_tvDistanceSup,
     tvDistanceSup_eq_densityPositiveIntegral_of_ac μ ν h_ac]
 
 private theorem densityPositiveIntegral_eq_half_densityAbsIntegral_of_ac
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω)
-    (h_ac : (μ : Measure Ω) ≪ (ν : Measure Ω)) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (h_ac : μ ≪ ν) :
     densityPositiveIntegral μ ν = (1 / 2 : ℝ) * densityAbsIntegral μ ν := by
   have h :=
     integral_nonneg_part_eq_half_integral_abs_of_integral_eq_zero
-      (μ := (ν : Measure Ω)) (g := fun x => rnDensity μ ν x - 1)
+      (μ := ν) (g := fun x => rnDensity μ ν x - 1)
       ((measurable_rnDensity μ ν).sub measurable_const)
       (integrable_rnDensity_sub_one μ ν)
       (integral_rnDensity_sub_one_eq_zero_of_ac μ ν h_ac)
@@ -446,82 +464,89 @@ private theorem half_integral_abs_sub_one_sq_le_integral_klFun
   nlinarith
 
 private theorem tvDistance_eq_half_densityAbsIntegral_of_ac
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω)
-    (h_ac : (μ : Measure Ω) ≪ (ν : Measure Ω)) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (h_ac : μ ≪ ν) :
     tvDistance μ ν = (1 / 2 : ℝ) * densityAbsIntegral μ ν := by
   rw [tvDistance_eq_densityPositiveIntegral_of_ac μ ν h_ac,
     densityPositiveIntegral_eq_half_densityAbsIntegral_of_ac μ ν h_ac]
 
 private theorem half_densityAbsIntegral_sq_le_integral_klFun_rnDensity
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω)
-    (h_ac : (μ : Measure Ω) ≪ (ν : Measure Ω))
-    (h_int : Integrable (llr (μ : Measure Ω) (ν : Measure Ω)) (μ : Measure Ω)) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (h_ac : μ ≪ ν)
+    (h_int : Integrable (llr μ ν) μ) :
     (1 / 2 : ℝ) * densityAbsIntegral μ ν ^ 2 ≤
-      ∫ x, InformationTheory.klFun (rnDensity μ ν x) ∂(ν : Measure Ω) := by
+      ∫ x, InformationTheory.klFun (rnDensity μ ν x) ∂ν := by
   have h_kl_int :
-      Integrable (fun x => InformationTheory.klFun (rnDensity μ ν x)) (ν : Measure Ω) := by
+      Integrable (fun x => InformationTheory.klFun (rnDensity μ ν x)) ν := by
     simpa [rnDensity] using
       (InformationTheory.integrable_klFun_rnDeriv_iff
-        (μ := (μ : Measure Ω)) (ν := (ν : Measure Ω)) h_ac).2 h_int
+        (μ := μ) (ν := ν) h_ac).2 h_int
   simpa [densityAbsIntegral] using
     half_integral_abs_sub_one_sq_le_integral_klFun
-      (μ := (ν : Measure Ω)) (f := rnDensity μ ν)
+      (μ := ν) (f := rnDensity μ ν)
       (measurable_rnDensity μ ν) (integrable_rnDensity μ ν) h_kl_int
       (rnDensity_nonneg μ ν) (integral_rnDensity_eq_one_of_ac μ ν h_ac)
 
 private theorem integral_klFun_rnDeriv_eq_kl_integral
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω)
-    (h_ac : (μ : Measure Ω) ≪ (ν : Measure Ω))
-    (h_int : Integrable (llr (μ : Measure Ω) (ν : Measure Ω)) (μ : Measure Ω)) :
-    (∫ x, InformationTheory.klFun (rnDensity μ ν x) ∂(ν : Measure Ω)) =
-      ∫ x, llr (μ : Measure Ω) (ν : Measure Ω) x ∂(μ : Measure Ω) := by
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (h_ac : μ ≪ ν)
+    (h_int : Integrable (llr μ ν) μ) :
+    (∫ x, InformationTheory.klFun (rnDensity μ ν x) ∂ν) =
+      ∫ x, llr μ ν x ∂μ := by
   have h := InformationTheory.integral_klFun_rnDeriv h_ac h_int
   simpa [rnDensity] using h
 
 private theorem density_l1_pinsker_le_kl_integral
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω)
-    (h_ac : (μ : Measure Ω) ≪ (ν : Measure Ω))
-    (h_int : Integrable (llr (μ : Measure Ω) (ν : Measure Ω)) (μ : Measure Ω)) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (h_ac : μ ≪ ν)
+    (h_int : Integrable (llr μ ν) μ) :
     (1 / 2 : ℝ) * densityAbsIntegral μ ν ^ 2 ≤
-      ∫ x, llr (μ : Measure Ω) (ν : Measure Ω) x ∂(μ : Measure Ω) := by
+      ∫ x, llr μ ν x ∂μ := by
   calc
     (1 / 2 : ℝ) * densityAbsIntegral μ ν ^ 2
-        ≤ ∫ x, InformationTheory.klFun (rnDensity μ ν x) ∂(ν : Measure Ω) :=
+        ≤ ∫ x, InformationTheory.klFun (rnDensity μ ν x) ∂ν :=
       half_densityAbsIntegral_sq_le_integral_klFun_rnDensity μ ν h_ac h_int
-    _ = ∫ x, llr (μ : Measure Ω) (ν : Measure Ω) x ∂(μ : Measure Ω) :=
+    _ = ∫ x, llr μ ν x ∂μ :=
       integral_klFun_rnDeriv_eq_kl_integral μ ν h_ac h_int
 
 private theorem real_pinsker_inequality_of_ac_of_integrable
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω)
-    (h_ac : (μ : Measure Ω) ≪ (ν : Measure Ω))
-    (h_int : Integrable (llr (μ : Measure Ω) (ν : Measure Ω)) (μ : Measure Ω)) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (h_ac : μ ≪ ν)
+    (h_int : Integrable (llr μ ν) μ) :
     2 * tvDistance μ ν ^ 2 ≤
-      ∫ x, llr (μ : Measure Ω) (ν : Measure Ω) x ∂(μ : Measure Ω) := by
+      ∫ x, llr μ ν x ∂μ := by
   have h_tv := tvDistance_eq_half_densityAbsIntegral_of_ac μ ν h_ac
   have h_l1 := density_l1_pinsker_le_kl_integral μ ν h_ac h_int
   calc
     2 * tvDistance μ ν ^ 2 = (1 / 2 : ℝ) * densityAbsIntegral μ ν ^ 2 := by
       rw [h_tv]
       ring
-    _ ≤ ∫ x, llr (μ : Measure Ω) (ν : Measure Ω) x ∂(μ : Measure Ω) := h_l1
+    _ ≤ ∫ x, llr μ ν x ∂μ := h_l1
 
 private theorem pinsker_inequality_of_ac_of_integrable
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω)
-    (h_ac : (μ : Measure Ω) ≪ (ν : Measure Ω))
-    (h_int : Integrable (llr (μ : Measure Ω) (ν : Measure Ω)) (μ : Measure Ω)) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (h_ac : μ ≪ ν)
+    (h_int : Integrable (llr μ ν) μ) :
     ENNReal.ofReal (2 * tvDistance μ ν ^ 2) ≤
-      InformationTheory.klDiv (μ : Measure Ω) (ν : Measure Ω) := by
+      InformationTheory.klDiv μ ν := by
   rw [InformationTheory.klDiv_of_ac_of_integrable h_ac h_int]
   apply ENNReal.ofReal_le_ofReal
   have h_real := real_pinsker_inequality_of_ac_of_integrable μ ν h_ac h_int
   simpa using h_real
 
 private theorem pinsker_inequality_of_ac
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω)
-    (h_ac : (μ : Measure Ω) ≪ (ν : Measure Ω)) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (h_ac : μ ≪ ν) :
     ENNReal.ofReal (2 * tvDistance μ ν ^ 2) ≤
-      InformationTheory.klDiv (μ : Measure Ω) (ν : Measure Ω) := by
-  by_cases h_int : Integrable (llr (μ : Measure Ω) (ν : Measure Ω)) (μ : Measure Ω)
+      InformationTheory.klDiv μ ν := by
+  by_cases h_int : Integrable (llr μ ν) μ
   · exact pinsker_inequality_of_ac_of_integrable μ ν h_ac h_int
   · rw [InformationTheory.klDiv_of_not_integrable h_int]
     exact le_top
@@ -529,20 +554,22 @@ private theorem pinsker_inequality_of_ac
 /-- Pinsker's inequality: total variation distance is bounded by KL divergence. This is stated in
 the `ℝ≥0∞` form `2 * TV^2 ≤ KL`, using natural logarithms in Mathlib's KL divergence. -/
 theorem pinsker_inequality
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :
     ENNReal.ofReal (2 * tvDistance μ ν ^ 2) ≤
-      InformationTheory.klDiv (μ : Measure Ω) (ν : Measure Ω) := by
-  by_cases h_ac : (μ : Measure Ω) ≪ (ν : Measure Ω)
+      InformationTheory.klDiv μ ν := by
+  by_cases h_ac : μ ≪ ν
   · exact pinsker_inequality_of_ac μ ν h_ac
   · rw [InformationTheory.klDiv_of_not_ac h_ac]
     exact le_top
 
 /-- Real-valued Pinsker corollary, useful once the relevant KL divergence is known to be finite. -/
 theorem two_mul_tvDistance_sq_le_toReal_klDiv
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω)
-    (hkl : InformationTheory.klDiv (μ : Measure Ω) (ν : Measure Ω) ≠ ∞) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (hkl : InformationTheory.klDiv μ ν ≠ ∞) :
     2 * tvDistance μ ν ^ 2 ≤
-      (InformationTheory.klDiv (μ : Measure Ω) (ν : Measure Ω)).toReal := by
+      (InformationTheory.klDiv μ ν).toReal := by
   have h :=
     ENNReal.toReal_mono hkl (pinsker_inequality μ ν)
   have hsq_nonneg : 0 ≤ tvDistance μ ν ^ 2 := sq_nonneg (tvDistance μ ν)

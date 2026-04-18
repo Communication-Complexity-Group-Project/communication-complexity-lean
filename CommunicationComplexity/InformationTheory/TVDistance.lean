@@ -13,23 +13,24 @@ open MeasureTheory
 
 namespace CommunicationComplexity
 
-/-- The signed difference between two probability measures. -/
+/-- The signed difference between two probability measures, represented as measures with
+`IsProbabilityMeasure` instances. -/
 noncomputable def signedMeasureDiff {Ω : Type*} [MeasurableSpace Ω]
-    (μ ν : ProbabilityMeasure Ω) : SignedMeasure Ω :=
-  (μ : Measure Ω).toSignedMeasure - (ν : Measure Ω).toSignedMeasure
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] : SignedMeasure Ω :=
+  μ.toSignedMeasure - ν.toSignedMeasure
 
 /-- Total variation distance between probability measures, defined using the total variation of
 the signed measure `μ - ν`. -/
 noncomputable def tvDistance {Ω : Type*} [MeasurableSpace Ω]
-    (μ ν : ProbabilityMeasure Ω) : ℝ :=
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] : ℝ :=
   (1 / 2 : ℝ) * (signedMeasureDiff μ ν).totalVariation.real Set.univ
 
 /-- Total variation distance between probability measures, defined as the supremum over
 measurable events. -/
 noncomputable def tvDistanceSup {Ω : Type*} [MeasurableSpace Ω]
-    (μ ν : ProbabilityMeasure Ω) : ℝ :=
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] : ℝ :=
   sSup (Set.range fun S : {S : Set Ω // MeasurableSet S} =>
-    |(μ : Measure Ω).real (S : Set Ω) - (ν : Measure Ω).real (S : Set Ω)|)
+    |μ.real (S : Set Ω) - ν.real (S : Set Ω)|)
 
 namespace TVDistance
 
@@ -43,13 +44,15 @@ private lemma signedMeasure_apply_eq_posPart_sub_negPart
   rw [JordanDecomposition.toSignedMeasure, Measure.toSignedMeasure_sub_apply hS]
 
 private lemma signedMeasureDiff_univ
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :
     signedMeasureDiff μ ν Set.univ = 0 := by
   rw [signedMeasureDiff, Measure.toSignedMeasure_sub_apply MeasurableSet.univ]
   simp
 
 private lemma jordan_posPart_real_univ_eq_negPart_real_univ
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :
     (signedMeasureDiff μ ν).toJordanDecomposition.posPart.real Set.univ =
       (signedMeasureDiff μ ν).toJordanDecomposition.negPart.real Set.univ := by
   have h := signedMeasure_apply_eq_posPart_sub_negPart (signedMeasureDiff μ ν) MeasurableSet.univ
@@ -64,7 +67,8 @@ private lemma totalVariation_real_univ
   rw [SignedMeasure.totalVariation, measureReal_add_apply]
 
 private lemma half_totalVariation_real_univ_eq_posPart_real_univ
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :
     (1 / 2 : ℝ) * (signedMeasureDiff μ ν).totalVariation.real Set.univ =
       (signedMeasureDiff μ ν).toJordanDecomposition.posPart.real Set.univ := by
   rw [totalVariation_real_univ]
@@ -72,7 +76,8 @@ private lemma half_totalVariation_real_univ_eq_posPart_real_univ
   ring
 
 private lemma event_abs_signedMeasureDiff_le_half_totalVariation
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω)
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
     (S : {S : Set Ω // MeasurableSet S}) :
     |signedMeasureDiff μ ν (S : Set Ω)| ≤
       (1 / 2 : ℝ) * (signedMeasureDiff μ ν).totalVariation.real Set.univ := by
@@ -93,15 +98,17 @@ private lemma event_abs_signedMeasureDiff_le_half_totalVariation
   simpa [P, N] using hbound
 
 private lemma event_abs_measureReal_sub_le_half_totalVariation
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω)
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
     (S : {S : Set Ω // MeasurableSet S}) :
-    |(μ : Measure Ω).real (S : Set Ω) - (ν : Measure Ω).real (S : Set Ω)| ≤
+    |μ.real (S : Set Ω) - ν.real (S : Set Ω)| ≤
       (1 / 2 : ℝ) * (signedMeasureDiff μ ν).totalVariation.real Set.univ := by
   rw [← Measure.toSignedMeasure_sub_apply S.property]
-  exact event_abs_signedMeasureDiff_le_half_totalVariation μ ν S
+  simpa [signedMeasureDiff] using event_abs_signedMeasureDiff_le_half_totalVariation μ ν S
 
 private lemma exists_event_abs_signedMeasureDiff_eq_half_totalVariation
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :
     ∃ S : {S : Set Ω // MeasurableSet S},
       |signedMeasureDiff μ ν (S : Set Ω)| =
         (1 / 2 : ℝ) * (signedMeasureDiff μ ν).totalVariation.real Set.univ := by
@@ -124,23 +131,25 @@ private lemma exists_event_abs_signedMeasureDiff_eq_half_totalVariation
   simp [s, P, N, hPcompl, hNcompl, abs_of_nonneg hnonneg]
 
 private lemma exists_event_abs_measureReal_sub_eq_half_totalVariation
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :
     ∃ S : {S : Set Ω // MeasurableSet S},
-      |(μ : Measure Ω).real (S : Set Ω) - (ν : Measure Ω).real (S : Set Ω)| =
+      |μ.real (S : Set Ω) - ν.real (S : Set Ω)| =
         (1 / 2 : ℝ) * (signedMeasureDiff μ ν).totalVariation.real Set.univ := by
   obtain ⟨S, hS⟩ := exists_event_abs_signedMeasureDiff_eq_half_totalVariation μ ν
   refine ⟨S, ?_⟩
   rw [← Measure.toSignedMeasure_sub_apply S.property]
-  exact hS
+  simpa [signedMeasureDiff] using hS
 
 open Classical in
 /-- The total-variation-mass definition agrees with the supremum-over-events definition. -/
 theorem tvDistance_eq_tvDistanceSup
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :
     tvDistance μ ν = tvDistanceSup μ ν := by
   let rhs : ℝ := (1 / 2 : ℝ) * (signedMeasureDiff μ ν).totalVariation.real Set.univ
   have hset_le (S : {S : Set Ω // MeasurableSet S}) :
-      |(μ : Measure Ω).real (S : Set Ω) - (ν : Measure Ω).real (S : Set Ω)| ≤ rhs := by
+      |μ.real (S : Set Ω) - ν.real (S : Set Ω)| ≤ rhs := by
     simpa [rhs] using event_abs_measureReal_sub_le_half_totalVariation μ ν S
   have hrhs_nonneg : 0 ≤ rhs := by
     dsimp [rhs]
@@ -151,7 +160,7 @@ theorem tvDistance_eq_tvDistanceSup
   obtain ⟨Smax, hSmax⟩ := exists_event_abs_measureReal_sub_eq_half_totalVariation μ ν
   have hbdd :
       BddAbove (Set.range fun S : {S : Set Ω // MeasurableSet S} =>
-        |(μ : Measure Ω).real (S : Set Ω) - (ν : Measure Ω).real (S : Set Ω)|) := by
+        |μ.real (S : Set Ω) - ν.real (S : Set Ω)|) := by
     exact ⟨rhs, by rintro _ ⟨S, rfl⟩; exact hset_le S⟩
   have hlower : rhs ≤ tvDistanceSup μ ν := by
     rw [tvDistanceSup]
@@ -163,16 +172,18 @@ theorem tvDistance_eq_tvDistanceSup
 
 /-- The total variation distance bounds the probability gap of every measurable event. -/
 theorem abs_measureReal_sub_le_tvDistance
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω)
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
     (S : {S : Set Ω // MeasurableSet S}) :
-    |(μ : Measure Ω).real (S : Set Ω) - (ν : Measure Ω).real (S : Set Ω)| ≤
+    |μ.real (S : Set Ω) - ν.real (S : Set Ω)| ≤
       tvDistance μ ν := by
   rw [tvDistance]
   exact event_abs_measureReal_sub_le_half_totalVariation μ ν S
 
 /-- Total variation distance is nonnegative. -/
 theorem tvDistance_nonneg
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω) :
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :
     0 ≤ tvDistance μ ν := by
   rw [tvDistance]
   positivity
@@ -255,17 +266,19 @@ private lemma abs_sum_pos_indicator_eq_half_sum_abs
   rw [abs_of_nonneg hnonneg, sum_posPart_eq_half_sum_abs a hsum]
 
 private def singletonMassDiff
-    {Ω : Type*} [MeasurableSpace Ω] (μ ν : ProbabilityMeasure Ω) (ω : Ω) : ℝ :=
-  (μ : Measure Ω).real ({ω} : Set Ω) - (ν : Measure Ω).real ({ω} : Set Ω)
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (ω : Ω) : ℝ :=
+  μ.real ({ω} : Set Ω) - ν.real ({ω} : Set Ω)
 
 open Classical in
 private lemma measureReal_sub_eq_sum_indicator_singletonMassDiff
     {Ω : Type*} [MeasurableSpace Ω] [FiniteMeasureSpace Ω]
-    (μ ν : ProbabilityMeasure Ω) (S : Set Ω) :
-    (μ : Measure Ω).real S - (ν : Measure Ω).real S =
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] (S : Set Ω) :
+    μ.real S - ν.real S =
       ∑ ω : Ω, if ω ∈ S then singletonMassDiff μ ν ω else 0 := by
-  rw [FiniteMeasureSpace.probabilityMeasure_measureReal_eq_sum_singletons μ S,
-    FiniteMeasureSpace.probabilityMeasure_measureReal_eq_sum_singletons ν S,
+  rw [FiniteMeasureSpace.measureReal_eq_sum_singletons μ S,
+    FiniteMeasureSpace.measureReal_eq_sum_singletons ν S,
     ← Finset.sum_sub_distrib]
   apply Finset.sum_congr rfl
   intro ω _
@@ -273,15 +286,15 @@ private lemma measureReal_sub_eq_sum_indicator_singletonMassDiff
 
 private lemma sum_singletonMassDiff_eq_zero
     {Ω : Type*} [MeasurableSpace Ω] [FiniteMeasureSpace Ω]
-    (μ ν : ProbabilityMeasure Ω) :
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :
     ∑ ω : Ω, singletonMassDiff μ ν ω = 0 := by
   classical
   simp_rw [singletonMassDiff]
   rw [Finset.sum_sub_distrib]
   have hμ :=
-    FiniteMeasureSpace.probabilityMeasure_measureReal_eq_sum_singletons μ (Set.univ : Set Ω)
+    FiniteMeasureSpace.measureReal_eq_sum_singletons μ (Set.univ : Set Ω)
   have hν :=
-    FiniteMeasureSpace.probabilityMeasure_measureReal_eq_sum_singletons ν (Set.univ : Set Ω)
+    FiniteMeasureSpace.measureReal_eq_sum_singletons ν (Set.univ : Set Ω)
   simp only [Set.mem_univ, ↓reduceIte] at hμ hν
   rw [← hμ, ← hν]
   simp
@@ -291,19 +304,19 @@ open Classical in
 the singleton masses. -/
 theorem tvDistanceSup_eq_half_sum
     {Ω : Type*} [MeasurableSpace Ω] [FiniteMeasureSpace Ω]
-    (μ ν : ProbabilityMeasure Ω) :
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :
     tvDistanceSup μ ν =
       (1 / 2 : ℝ) *
-        ∑ ω : Ω, |(μ : Measure Ω).real ({ω} : Set Ω) -
-          (ν : Measure Ω).real ({ω} : Set Ω)| := by
+        ∑ ω : Ω, |μ.real ({ω} : Set Ω) -
+          ν.real ({ω} : Set Ω)| := by
   let rhs : ℝ :=
     (1 / 2 : ℝ) *
-      ∑ ω : Ω, |(μ : Measure Ω).real ({ω} : Set Ω) -
-        (ν : Measure Ω).real ({ω} : Set Ω)|
+      ∑ ω : Ω, |μ.real ({ω} : Set Ω) -
+        ν.real ({ω} : Set Ω)|
   have hsum : ∑ ω : Ω, singletonMassDiff μ ν ω = 0 :=
     sum_singletonMassDiff_eq_zero μ ν
   have hset_le (S : {S : Set Ω // MeasurableSet S}) :
-      |(μ : Measure Ω).real (S : Set Ω) - (ν : Measure Ω).real (S : Set Ω)| ≤ rhs := by
+      |μ.real (S : Set Ω) - ν.real (S : Set Ω)| ≤ rhs := by
     rw [measureReal_sub_eq_sum_indicator_singletonMassDiff μ ν (S : Set Ω)]
     exact abs_sum_indicator_le_half_sum_abs (singletonMassDiff μ ν) hsum (S : Set Ω)
   have hrhs_nonneg : 0 ≤ rhs := by
@@ -315,7 +328,7 @@ theorem tvDistanceSup_eq_half_sum
   let Spos : {S : Set Ω // MeasurableSet S} :=
     ⟨{ω | 0 ≤ singletonMassDiff μ ν ω}, MeasurableSet.of_discrete⟩
   have hpos_event :
-      |(μ : Measure Ω).real (Spos : Set Ω) - (ν : Measure Ω).real (Spos : Set Ω)| = rhs := by
+      |μ.real (Spos : Set Ω) - ν.real (Spos : Set Ω)| = rhs := by
     rw [measureReal_sub_eq_sum_indicator_singletonMassDiff μ ν (Spos : Set Ω)]
     change |∑ ω : Ω, if 0 ≤ singletonMassDiff μ ν ω then singletonMassDiff μ ν ω else 0| =
       rhs
@@ -323,7 +336,7 @@ theorem tvDistanceSup_eq_half_sum
     rfl
   have hbdd :
       BddAbove (Set.range fun S : {S : Set Ω // MeasurableSet S} =>
-        |(μ : Measure Ω).real (S : Set Ω) - (ν : Measure Ω).real (S : Set Ω)|) := by
+        |μ.real (S : Set Ω) - ν.real (S : Set Ω)|) := by
     exact ⟨rhs, by rintro _ ⟨S, rfl⟩; exact hset_le S⟩
   have hlower : rhs ≤ tvDistanceSup μ ν := by
     rw [tvDistanceSup]
@@ -336,31 +349,31 @@ open Classical in
 the singleton masses. -/
 theorem tvDistance_eq_half_sum
     {Ω : Type*} [MeasurableSpace Ω] [FiniteMeasureSpace Ω]
-    (μ ν : ProbabilityMeasure Ω) :
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :
     tvDistance μ ν =
       (1 / 2 : ℝ) *
-        ∑ ω : Ω, |(μ : Measure Ω).real ({ω} : Set Ω) -
-          (ν : Measure Ω).real ({ω} : Set Ω)| := by
+        ∑ ω : Ω, |μ.real ({ω} : Set Ω) -
+          ν.real ({ω} : Set Ω)| := by
   rw [tvDistance_eq_tvDistanceSup, tvDistanceSup_eq_half_sum]
 
 /-- On `Bool`, total variation distance is the absolute singleton-mass gap at `true`. -/
 theorem tvDistance_bool_eq_abs_true
-    (μ ν : ProbabilityMeasure Bool) :
+    (μ ν : Measure Bool) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :
     tvDistance μ ν =
-      |(μ : Measure Bool).real ({true} : Set Bool) -
-        (ν : Measure Bool).real ({true} : Set Bool)| := by
+      |μ.real ({true} : Set Bool) -
+        ν.real ({true} : Set Bool)| := by
   rw [tvDistance_eq_half_sum]
   have hμ :
-      (μ : Measure Bool).real ({false} : Set Bool) =
-        1 - (μ : Measure Bool).real ({true} : Set Bool) := by
+      μ.real ({false} : Set Bool) =
+        1 - μ.real ({true} : Set Bool) := by
     have hcompl :
         ({false} : Set Bool) = ({true} : Set Bool)ᶜ := by
       ext b
       cases b <;> simp
     rw [hcompl, measureReal_compl MeasurableSet.of_discrete, probReal_univ]
   have hν :
-      (ν : Measure Bool).real ({false} : Set Bool) =
-        1 - (ν : Measure Bool).real ({true} : Set Bool) := by
+      ν.real ({false} : Set Bool) =
+        1 - ν.real ({true} : Set Bool) := by
     have hcompl :
         ({false} : Set Bool) = ({true} : Set Bool)ᶜ := by
       ext b
@@ -368,19 +381,12 @@ theorem tvDistance_bool_eq_abs_true
     rw [hcompl, measureReal_compl MeasurableSet.of_discrete, probReal_univ]
   rw [Fintype.sum_bool, hμ, hν]
   ring_nf
-  rw [show (-(μ : Measure Bool).real ({true} : Set Bool) +
-        (ν : Measure Bool).real ({true} : Set Bool)) =
-      -((μ : Measure Bool).real ({true} : Set Bool) -
-        (ν : Measure Bool).real ({true} : Set Bool)) by ring]
+  rw [show (-μ.real ({true} : Set Bool) +
+        ν.real ({true} : Set Bool)) =
+      -(μ.real ({true} : Set Bool) -
+        ν.real ({true} : Set Bool)) by ring]
   rw [abs_neg]
   ring
-
-/-- Product of two probability measures, bundled as a probability measure. -/
-noncomputable def probabilityMeasureProd
-    {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
-    (μ : ProbabilityMeasure α) (ν : ProbabilityMeasure β) :
-    ProbabilityMeasure (α × β) :=
-  ⟨(μ : Measure α).prod (ν : Measure β), inferInstance⟩
 
 open Classical in
 /-- The total variation distance between product distributions is bounded by the sum of the
@@ -388,19 +394,19 @@ total variation distances between their marginals. -/
 theorem tvDistance_prod_le
     {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
     [FiniteMeasureSpace α] [FiniteMeasureSpace β]
-    (μ₁ ν₁ : ProbabilityMeasure α) (μ₂ ν₂ : ProbabilityMeasure β) :
-    tvDistance (probabilityMeasureProd μ₁ μ₂) (probabilityMeasureProd ν₁ ν₂) ≤
+    (μ₁ ν₁ : Measure α) (μ₂ ν₂ : Measure β)
+    [IsProbabilityMeasure μ₁] [IsProbabilityMeasure ν₁]
+    [IsProbabilityMeasure μ₂] [IsProbabilityMeasure ν₂] :
+    tvDistance (μ₁.prod μ₂) (ν₁.prod ν₂) ≤
       tvDistance μ₁ ν₁ + tvDistance μ₂ ν₂ := by
-  let a : α → ℝ := fun x => (μ₁ : Measure α).real ({x} : Set α)
-  let b : β → ℝ := fun y => (μ₂ : Measure β).real ({y} : Set β)
-  let c : α → ℝ := fun x => (ν₁ : Measure α).real ({x} : Set α)
-  let d : β → ℝ := fun y => (ν₂ : Measure β).real ({y} : Set β)
+  let a : α → ℝ := fun x => μ₁.real ({x} : Set α)
+  let b : β → ℝ := fun y => μ₂.real ({y} : Set β)
+  let c : α → ℝ := fun x => ν₁.real ({x} : Set α)
+  let d : β → ℝ := fun y => ν₂.real ({y} : Set β)
   have hb_sum : ∑ y : β, b y = 1 := by
-    simpa [b] using
-      (FiniteMeasureSpace.probabilityMeasure_measureReal_eq_sum_singletons μ₂ Set.univ).symm
+    simp [b]
   have hc_sum : ∑ x : α, c x = 1 := by
-    simpa [c] using
-      (FiniteMeasureSpace.probabilityMeasure_measureReal_eq_sum_singletons ν₁ Set.univ).symm
+    simp [c]
   have hb_nonneg : ∀ y, 0 ≤ b y := fun _ => measureReal_nonneg
   have hc_nonneg : ∀ x, 0 ≤ c x := fun _ => measureReal_nonneg
   rw [tvDistance_eq_half_sum, tvDistance_eq_half_sum, tvDistance_eq_half_sum]
@@ -446,9 +452,8 @@ theorem tvDistance_prod_le
     intro p _
     rcases p with ⟨x, y⟩
     have hμ_prod :
-        ((probabilityMeasureProd μ₁ μ₂ : ProbabilityMeasure (α × β)) :
-          Measure (α × β)).real ({(x, y)} : Set (α × β)) = a x * b y := by
-      change (((μ₁ : Measure α).prod (μ₂ : Measure β)) ({(x, y)} : Set (α × β))).toReal =
+        (μ₁.prod μ₂).real ({(x, y)} : Set (α × β)) = a x * b y := by
+      change ((μ₁.prod μ₂) ({(x, y)} : Set (α × β))).toReal =
         a x * b y
       rw [show ({(x, y)} : Set (α × β)) = ({x} : Set α) ×ˢ ({y} : Set β) by
         ext p
@@ -456,9 +461,8 @@ theorem tvDistance_prod_le
       rw [Measure.prod_prod, ENNReal.toReal_mul]
       rfl
     have hν_prod :
-        ((probabilityMeasureProd ν₁ ν₂ : ProbabilityMeasure (α × β)) :
-          Measure (α × β)).real ({(x, y)} : Set (α × β)) = c x * d y := by
-      change (((ν₁ : Measure α).prod (ν₂ : Measure β)) ({(x, y)} : Set (α × β))).toReal =
+        (ν₁.prod ν₂).real ({(x, y)} : Set (α × β)) = c x * d y := by
+      change ((ν₁.prod ν₂) ({(x, y)} : Set (α × β))).toReal =
         c x * d y
       rw [show ({(x, y)} : Set (α × β)) = ({x} : Set α) ×ˢ ({y} : Set β) by
         ext p

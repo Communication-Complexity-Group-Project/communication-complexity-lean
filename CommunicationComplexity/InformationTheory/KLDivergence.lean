@@ -58,21 +58,6 @@ theorem FiniteMeasureSpace.klDiv_eq_sum_llr
     exact klDiv_eq_sum_llr_of_ac μ ν h_ac
 
 open Classical in
-/-- On a finite measurable space, the Kullback-Leibler divergence between probability measures is
-`∞` if some singleton has zero `ν`-mass and nonzero `μ`-mass; otherwise it is a finite sum over
-the PMFs. -/
-theorem FiniteMeasureSpace.probabilityMeasure_klDiv_eq_sum_llr
-    {Ω : Type*} [MeasurableSpace Ω] [FiniteMeasureSpace Ω]
-    (μ ν : ProbabilityMeasure Ω) :
-    InformationTheory.klDiv (μ : Measure Ω) (ν : Measure Ω) =
-      if ∃ ω, (ν : Measure Ω).toPMF ω = 0 ∧ (μ : Measure Ω).toPMF ω ≠ 0 then ∞
-      else
-      ENNReal.ofReal (∑ ω : Ω,
-        ((μ : Measure Ω).toPMF ω).toReal * llr (μ : Measure Ω) (ν : Measure Ω) ω) := by
-  rw [FiniteMeasureSpace.klDiv_eq_sum_llr (μ : Measure Ω) (ν : Measure Ω)]
-  simp [Measure.toPMF_apply, Measure.real]
-
-open Classical in
 /-- On a finite measurable space, the Kullback-Leibler divergence between PMFs is `∞` if some
 point has zero `q`-mass and nonzero `p`-mass; otherwise it is a finite sum over the PMFs. -/
 theorem FiniteMeasureSpace.pmf_klDiv_eq_sum_llr
@@ -81,9 +66,8 @@ theorem FiniteMeasureSpace.pmf_klDiv_eq_sum_llr
     InformationTheory.klDiv p.toMeasure q.toMeasure =
       if ∃ ω, q ω = 0 ∧ p ω ≠ 0 then ∞
       else ENNReal.ofReal (∑ ω : Ω, (p ω).toReal * llr p.toMeasure q.toMeasure ω) := by
-  simpa [PMF.toProbabilityMeasure] using
-    (FiniteMeasureSpace.probabilityMeasure_klDiv_eq_sum_llr
-      p.toProbabilityMeasure q.toProbabilityMeasure)
+  rw [FiniteMeasureSpace.klDiv_eq_sum_llr p.toMeasure q.toMeasure]
+  simp [Measure.real]
 
 open Classical in
 private theorem rnDeriv_toReal_eq_singleton_ratio
@@ -146,34 +130,18 @@ theorem FiniteMeasureSpace.klDiv_eq_sum_log
     exact singleton_mass_mul_llr_eq_log_ratio h_ac ω
 
 open Classical in
-/-- On a finite measurable space, the Kullback-Leibler divergence between probability measures is
-`∞` if some singleton has zero `ν`-mass and nonzero `μ`-mass; otherwise it is the finite sum of
-`p ω * log (p ω / q ω)`, where `p` and `q` are the PMFs of the two measures. -/
-theorem FiniteMeasureSpace.probabilityMeasure_klDiv_eq_sum_log
+/-- On a finite space, KL divergence from a probability measure to a full-support probability
+measure is finite, stated for measures with `IsProbabilityMeasure` instances. -/
+theorem FiniteMeasureSpace.klDiv_ne_top_of_forall_toPMF_ne_zero
     {Ω : Type*} [MeasurableSpace Ω] [FiniteMeasureSpace Ω]
-    (μ ν : ProbabilityMeasure Ω) :
-    InformationTheory.klDiv (μ : Measure Ω) (ν : Measure Ω) =
-      if ∃ ω, (ν : Measure Ω).toPMF ω = 0 ∧ (μ : Measure Ω).toPMF ω ≠ 0 then ∞
-      else ENNReal.ofReal (∑ ω : Ω,
-        ((μ : Measure Ω).toPMF ω).toReal *
-          Real.log (((μ : Measure Ω).toPMF ω).toReal /
-            ((ν : Measure Ω).toPMF ω).toReal)) := by
-  rw [FiniteMeasureSpace.klDiv_eq_sum_log (μ : Measure Ω) (ν : Measure Ω)]
-  simp [Measure.toPMF_apply, Measure.real]
-
-open Classical in
-/-- On a finite space, KL divergence from `μ` to a probability measure with full support is
-finite. -/
-theorem FiniteMeasureSpace.probabilityMeasure_klDiv_ne_top_of_forall_toPMF_ne_zero
-    {Ω : Type*} [MeasurableSpace Ω] [FiniteMeasureSpace Ω]
-    (μ ν : ProbabilityMeasure Ω)
-    (hν : ∀ ω, (ν : Measure Ω).toPMF ω ≠ 0) :
-    InformationTheory.klDiv (μ : Measure Ω) (ν : Measure Ω) ≠ ∞ := by
-  rw [FiniteMeasureSpace.probabilityMeasure_klDiv_eq_sum_log μ ν]
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (hν : ∀ ω, ν.toPMF ω ≠ 0) :
+    InformationTheory.klDiv μ ν ≠ ∞ := by
+  rw [FiniteMeasureSpace.klDiv_eq_sum_log μ ν]
   rw [if_neg]
   · exact ENNReal.ofReal_ne_top
   · rintro ⟨ω, hνω, -⟩
-    exact hν ω hνω
+    exact hν ω (by simpa [Measure.toPMF_apply] using hνω)
 
 open Classical in
 /-- On a finite measurable space, the Kullback-Leibler divergence between PMFs is `∞` if some
@@ -186,9 +154,8 @@ theorem FiniteMeasureSpace.pmf_klDiv_eq_sum_log
       if ∃ ω, q ω = 0 ∧ p ω ≠ 0 then ∞
       else ENNReal.ofReal (∑ ω : Ω,
         (p ω).toReal * Real.log ((p ω).toReal / (q ω).toReal)) := by
-  simpa [PMF.toProbabilityMeasure] using
-    (FiniteMeasureSpace.probabilityMeasure_klDiv_eq_sum_log
-      p.toProbabilityMeasure q.toProbabilityMeasure)
+  rw [FiniteMeasureSpace.klDiv_eq_sum_log p.toMeasure q.toMeasure]
+  simp [Measure.real]
 
 end CommunicationComplexity
 
@@ -198,21 +165,23 @@ open Classical in
 /-- On one-bit probability measures, Mathlib's `klDiv` to any full-support bit law agrees with
 the real-valued PFR `KLDiv` used by the entropy API. -/
 theorem toReal_klDiv_bool_eq_KLDiv
-    (μ ν : ProbabilityMeasure Bool)
-    (hν : ∀ b, (ν : Measure Bool).toPMF b ≠ 0) :
-    (InformationTheory.klDiv (μ : Measure Bool) (ν : Measure Bool)).toReal =
-      KL[id ; (μ : Measure Bool) # id ; (ν : Measure Bool)] := by
+    (μ ν : Measure Bool) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (hν : ∀ b, ν.toPMF b ≠ 0) :
+    (InformationTheory.klDiv μ ν).toReal =
+      KL[id ; μ # id ; ν] := by
   have hnonneg :
-      0 ≤ KL[id ; (μ : Measure Bool) # id ; (ν : Measure Bool)] := by
-    exact KLDiv_nonneg (μ := (μ : Measure Bool)) (μ' := (ν : Measure Bool))
+      0 ≤ KL[id ; μ # id ; ν] := by
+    exact KLDiv_nonneg (μ := μ) (μ' := ν)
       (X := id) (Y := id) Measurable.of_discrete Measurable.of_discrete
       (fun b hb => False.elim (hν b (by simpa [Measure.toPMF_apply] using hb)))
-  rw [CommunicationComplexity.FiniteMeasureSpace.probabilityMeasure_klDiv_eq_sum_log μ ν]
+  rw [CommunicationComplexity.FiniteMeasureSpace.klDiv_eq_sum_log μ ν]
   rw [if_neg]
   · rw [ENNReal.toReal_ofReal]
     · rw [KLDiv_eq_sum]
-      simp [Measure.toPMF_apply, Measure.real]
-    · simpa [KLDiv_eq_sum, Measure.toPMF_apply, Measure.real] using hnonneg
+      rw [probReal_univ, probReal_univ]
+      simp [Measure.real]
+    · rw [probReal_univ, probReal_univ]
+      simpa [KLDiv_eq_sum, Measure.real] using hnonneg
   · rintro ⟨b, hb, -⟩
     exact hν b hb
 
@@ -222,17 +191,19 @@ random variable to any full-support reference bit law be read as the PFR real-va
 the corresponding random variable. -/
 theorem toReal_klDiv_map_bool_eq_KLDiv_of_measureReal_ne_zero
     {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω) [IsFiniteMeasure μ]
-    (X : Ω → Bool) (S : Set Ω) (ν : ProbabilityMeasure Bool)
+    (X : Ω → Bool) (S : Set Ω) (ν : Measure Bool) [IsProbabilityMeasure ν]
     (hX : Measurable X) (hS : μ.real S ≠ 0)
-    (hν : ∀ b, (ν : Measure Bool).toPMF b ≠ 0) :
-    (InformationTheory.klDiv (Measure.map X (μ[|S])) (ν : Measure Bool)).toReal =
-      KL[X ; μ[|S] # id ; (ν : Measure Bool)] := by
-  let μS : ProbabilityMeasure Ω :=
-    ⟨μ[|S], ProbabilityTheory.cond_isProbabilityMeasure
-      ((MeasureTheory.measureReal_ne_zero_iff (μ := μ) (s := S)).mp hS)⟩
+    (hν : ∀ b, ν.toPMF b ≠ 0) :
+    (InformationTheory.klDiv (Measure.map X (μ[|S])) ν).toReal =
+      KL[X ; μ[|S] # id ; ν] := by
+  haveI : IsProbabilityMeasure (μ[|S]) :=
+    ProbabilityTheory.cond_isProbabilityMeasure
+      ((MeasureTheory.measureReal_ne_zero_iff (μ := μ) (s := S)).mp hS)
+  haveI : IsProbabilityMeasure (Measure.map X (μ[|S])) :=
+    Measure.isProbabilityMeasure_map hX.aemeasurable
   have h :=
     toReal_klDiv_bool_eq_KLDiv
-      (ProbabilityMeasure.map μS hX.aemeasurable) ν hν
-  simpa [μS, KLDiv] using h
+      (Measure.map X (μ[|S])) ν hν
+  simpa [KLDiv] using h
 
 end ProbabilityTheory

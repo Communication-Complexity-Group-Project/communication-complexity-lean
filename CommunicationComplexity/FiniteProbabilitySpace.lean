@@ -3,7 +3,6 @@ import Mathlib.Data.Fintype.Pi
 import Mathlib.MeasureTheory.MeasurableSpace.Defs
 import Mathlib.MeasureTheory.Constructions.Pi
 import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
-import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
 import Mathlib.MeasureTheory.Measure.Prod
 import Mathlib.MeasureTheory.Measure.Real
 import Mathlib.Probability.ProbabilityMassFunction.Basic
@@ -14,22 +13,6 @@ import Mathlib.Probability.ConditionalProbability
 
 open MeasureTheory
 open scoped ProbabilityTheory
-
-namespace PMF
-
-/-- Bundle the measure associated to a PMF as a probability measure. -/
-noncomputable def toProbabilityMeasure
-    {Ω : Type*} [MeasurableSpace Ω] (p : PMF Ω) :
-    ProbabilityMeasure Ω :=
-  ⟨p.toMeasure, PMF.toMeasure.isProbabilityMeasure p⟩
-
-@[simp]
-theorem coe_toProbabilityMeasure
-    {Ω : Type*} [MeasurableSpace Ω] (p : PMF Ω) :
-    ((p.toProbabilityMeasure : ProbabilityMeasure Ω) : Measure Ω) = p.toMeasure :=
-  rfl
-
-end PMF
 
 namespace CommunicationComplexity
 
@@ -75,16 +58,17 @@ def FiniteProbabilitySpace.of
   finite := FiniteMeasureSpace.of Ω
   prob := inferInstance }
 
-/-- Build a finite probability space from a finite measurable space and a probability measure. -/
-noncomputable def FiniteProbabilitySpace.ofProbabilityMeasure
+/-- Build a finite probability space from a finite measurable space and an unbundled probability
+measure. -/
+noncomputable def FiniteProbabilitySpace.ofMeasure
     (Ω : Type*) [MeasurableSpace Ω] [FiniteMeasureSpace Ω]
-    (μ : ProbabilityMeasure Ω) :
+    (μ : Measure Ω) [IsProbabilityMeasure μ] :
     FiniteProbabilitySpace Ω :=
 { toMeasureSpace :=
     { toMeasurableSpace := inferInstance
-      volume := (μ : Measure Ω) }
+      volume := μ }
   finite := inferInstance
-  prob := μ.2 }
+  prob := inferInstance }
 
 open Classical in
 /-- A finite measure on a finite measurable space is determined by its singleton masses. -/
@@ -100,15 +84,6 @@ theorem FiniteMeasureSpace.measureReal_eq_sum_singletons
   rw [← hST]
   rw [← MeasureTheory.sum_measureReal_singleton (μ := μ) T]
   simp [T, Finset.sum_filter]
-
-open Classical in
-/-- A probability measure on a finite measurable space is determined by its singleton masses. -/
-theorem FiniteMeasureSpace.probabilityMeasure_measureReal_eq_sum_singletons
-    {Ω : Type*} [MeasurableSpace Ω] [FiniteMeasureSpace Ω]
-    (μ : ProbabilityMeasure Ω) (S : Set Ω) :
-    (μ : Measure Ω).real S =
-      ∑ ω : Ω, if ω ∈ S then (μ : Measure Ω).real ({ω} : Set Ω) else 0 :=
-  FiniteMeasureSpace.measureReal_eq_sum_singletons (μ : Measure Ω) S
 
 open Classical in
 /-- On a finite measurable space, the real measure of a preimage event is the sum of the
@@ -157,16 +132,6 @@ theorem FiniteMeasureSpace.measureReal_preimage_eq_sum_fibers
             · simp [hz]
 
 open Classical in
-/-- On a finite measurable space, the real measure of a preimage event is the sum of the
-real masses of the fibers that imply the event. -/
-theorem FiniteMeasureSpace.probabilityMeasure_measureReal_preimage_eq_sum_fibers
-    {Ω α : Type*} [MeasurableSpace Ω] [FiniteMeasureSpace Ω]
-    [Fintype α] (μ : ProbabilityMeasure Ω) (Z : Ω → α) (P : α → Prop) :
-    (μ : Measure Ω).real {ω | P (Z ω)} =
-      ∑ z : α, if P z then (μ : Measure Ω).real (Z ⁻¹' {z}) else 0 :=
-  FiniteMeasureSpace.measureReal_preimage_eq_sum_fibers (μ : Measure Ω) Z P
-
-open Classical in
 /-- On a finite measurable space, absolute continuity is equivalent to absolute continuity on
 singleton masses. -/
 theorem FiniteMeasureSpace.absolutelyContinuous_iff_forall_singletons
@@ -192,10 +157,10 @@ theorem FiniteMeasureSpace.absolutelyContinuous_iff_forall_singletons
 
 /-- For any probability measure on a finite measurable space, the square of an expectation is
 bounded by the expectation of the square. -/
-theorem FiniteMeasureSpace.probabilityMeasure_sq_integral_le_integral_sq
+theorem FiniteMeasureSpace.sq_integral_le_integral_sq
     {Ω : Type*} [MeasurableSpace Ω] [FiniteMeasureSpace Ω]
-    (μ : ProbabilityMeasure Ω) (f : Ω → ℝ) :
-    (∫ ω, f ω ∂(μ : Measure Ω))^2 ≤ ∫ ω, (f ω)^2 ∂(μ : Measure Ω) :=
+    (μ : Measure Ω) [IsProbabilityMeasure μ] (f : Ω → ℝ) :
+    (∫ ω, f ω ∂μ)^2 ≤ ∫ ω, (f ω)^2 ∂μ :=
   ConvexOn.map_integral_le
     (by simpa using (show ConvexOn ℝ Set.univ (fun x : ℝ => x ^ 2) from
       Even.convexOn_pow (𝕜 := ℝ) (by decide : Even 2)))
@@ -408,8 +373,7 @@ the square. -/
 theorem sq_integral_le_integral_sq
     {Ω : Type*} [FiniteProbabilitySpace Ω] (f : Ω → ℝ) :
     (∫ ω, f ω)^2 ≤ ∫ ω, (f ω)^2 :=
-  FiniteMeasureSpace.probabilityMeasure_sq_integral_le_integral_sq
-    (⟨volume, inferInstance⟩ : ProbabilityMeasure Ω) f
+  FiniteMeasureSpace.sq_integral_le_integral_sq volume f
 
 /-- Integrating a function over a coordinate of a finite product space is the same as
 integrating it over the original finite probability space. -/
