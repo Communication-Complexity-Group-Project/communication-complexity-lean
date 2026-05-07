@@ -18,7 +18,7 @@ Communication complexity, introduced by Yao (1979), is a cornerstone of theoreti
 
 ## 3. Proof Strategy
 
-We plan to follow the standard textbook development (primarily Kushilevitz–Nisan and Rao–Yehudayoff), proceeding through several layers:
+We plan to follow the standard communication-complexity development, proceeding through several layers:
 
 - **Deterministic model:** Define protocols, the rectangle partition structure, and the log-rank lower bound. Prove tight bounds for equality ($D(\text{EQ}_n) = n + 1$) and the rank method.
 - **Randomized models (private and public coin):** Define $\varepsilon$-error protocols, communication complexity as an infimum, and monotonicity in $\varepsilon$. Establish reductions between models (deterministic $\Rightarrow$ private-coin $\Rightarrow$ public-coin).
@@ -35,8 +35,8 @@ We have already built substantial infrastructure, organized as follows:
 - `Deterministic.Protocol`, `PrivateCoin.Protocol`, `PublicCoin.Protocol` — inductive protocol types for all three models
 - `FiniteMessage.Protocol` and `GeneralFiniteMessage.Protocol` — generalized message-alphabet and arbitrary-probability-space variants, with verified reductions to binary protocols
 - `communicationComplexity` — defined as an infimum over protocols in each model, with `_le_iff` and `le_` characterizations
-- Rectangle theory: `IsRectangle`, `IsMonoPartition`, the rectangle partition theorem, and `communicationComplexity_lower_bound`
-- `log_rank_lower_bound` — $D(f) \geq \lceil \log_2 \text{rank}(f) \rceil$
+- Rectangle theory: `IsRectangle`, `IsMonoPartition`, the rectangle partition theorem, and `le_communicationComplexity_of_forall_lt_ncard`
+- `clog_boolFunctionRank_le_communicationComplexity` — $D(f) \geq \lceil \log_2 \text{rank}(f) \rceil$
 - `communicationComplexity_eq` for equality — $D(\text{EQ}_n) = n + 1$
 - `single_coin_approx` — approximation of arbitrary finite probability spaces by coin flips
 - `communicationComplexity_mono` — monotonicity in error parameter

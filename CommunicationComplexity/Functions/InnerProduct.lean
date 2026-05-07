@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026 Lucy Horowitz, Timothe Kasriel, and Mihir Singhal. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Lucy Horowitz, Timothe Kasriel, Mihir Singhal
+-/
+
 import Mathlib.Algebra.Ring.BooleanRing
 import Mathlib.Algebra.BigOperators.Ring.Finset
 import Mathlib.Algebra.Order.BigOperators.Ring.Finset
@@ -319,7 +325,7 @@ theorem publicCoin_le_communicationComplexity_of_hbound
     (k n : ℕ) {ε : ℝ}
     (hbound : (2 : ℝ) ^ k * Real.sqrt ((1 : ℝ) / 2 ^ n) < 1 - 2 * ε) :
     k < PublicCoin.communicationComplexity (innerProduct n) ε := by
-  refine PublicCoin.communicationComplexity_lower_bound_of_discrepancy
+  refine PublicCoin.lt_communicationComplexity_of_discrepancy_bound
     (μ := inferInstance) (g := innerProduct n) (ε := ε)
     (γ := Real.sqrt ((1 : ℝ) / 2 ^ n)) (n := k) ?_ hbound
   intro R hR

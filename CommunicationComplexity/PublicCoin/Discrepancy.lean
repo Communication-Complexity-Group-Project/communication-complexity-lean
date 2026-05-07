@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026 Lucy Horowitz, Timothe Kasriel, and Mihir Singhal. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Lucy Horowitz, Timothe Kasriel, Mihir Singhal
+-/
+
 import CommunicationComplexity.PublicCoin.Minimax
 import CommunicationComplexity.Deterministic.Rectangle
 import CommunicationComplexity.Helper
@@ -282,7 +288,7 @@ theorem one_sub_two_distributionalError_le_two_pow_mul
     simpa [signedBias_eq_one_sub_two_distributionalError] using hbias
   exact (le_abs_self _).trans habs
 
-/-- Textbook discrepancy lower bound in logarithmic form. -/
+/-- Discrepancy lower bound in logarithmic form. -/
 theorem logb_le_complexity_of_distributionalError
     [μ : FiniteProbabilitySpace (X × Y)]
     (g : X → Y → Bool) (γ : ℝ)
@@ -307,13 +313,14 @@ end Deterministic
 
 namespace PublicCoin
 
-theorem communicationComplexity_lower_bound_of_discrepancy
+theorem lt_communicationComplexity_of_discrepancy_bound
     [μ : FiniteProbabilitySpace (X × Y)]
     (g : X → Y → Bool) (ε γ : ℝ) (n : ℕ)
     (hdisc : ∀ R : Set (X × Y), Rectangle.IsRectangle R → |discrepancy g R| ≤ γ)
     (hbound : (2 : ℝ) ^ n * γ < 1 - 2 * ε) :
     n < communicationComplexity g ε := by
-  apply minimax_lower_bound (μ := μ) (f := g) (ε := ε) (n := n)
+  apply lt_communicationComplexity_of_forall_distributionalError_gt
+    (μ := μ) (f := g) (ε := ε) (n := n)
   intro p hp
   have hγ_nonneg : 0 ≤ γ := by
     have huniv :=

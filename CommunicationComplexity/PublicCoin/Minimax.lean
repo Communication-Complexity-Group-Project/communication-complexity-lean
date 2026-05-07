@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026 Lucy Horowitz, Timothe Kasriel, and Mihir Singhal. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Lucy Horowitz, Timothe Kasriel, Mihir Singhal
+-/
+
 import CommunicationComplexity.PublicCoin.Complexity
 import CommunicationComplexity.Comparison
 import CommunicationComplexity.FiniteProbabilitySpace
@@ -67,7 +73,7 @@ open Classical in
 distribution μ over X × Y such that every deterministic protocol of
 complexity ≤ n fails with probability > ε under μ, then the public-coin
 randomized communication complexity of f at error ε is greater than n. -/
-theorem minimax_lower_bound
+theorem lt_communicationComplexity_of_forall_distributionalError_gt
     {X Y α : Type*}
     (f : X → Y → α) (ε : ℝ) (n : ℕ)
     (μ : FiniteProbabilitySpace (X × Y))

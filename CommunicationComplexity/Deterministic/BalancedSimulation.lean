@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026 Lucy Horowitz, Timothe Kasriel, and Mihir Singhal. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Lucy Horowitz, Timothe Kasriel, Mihir Singhal
+-/
+
 import CommunicationComplexity.Deterministic.Subprotocol
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.Linarith
@@ -64,10 +70,10 @@ private lemma max_sq_le_of_balanced
   · rw [max_eq_left (le_of_not_ge hcase)]
     exact hmSq
 
-/-- Balanced simulation theorem (R&Y-style): every deterministic protocol can be simulated by
-another protocol with the same behavior and complexity obeying
+/-- Every deterministic protocol can be simulated by another protocol with the same behavior and
+complexity obeying
 `3^c ≤ 2^c * (#leaves)^2`. -/
-theorem theorem_1_7_experiment (p : Protocol X Y α) :
+theorem exists_balanced_simulation (p : Protocol X Y α) :
     ∃ q : Protocol X Y α, q.run = p.run ∧
       3 ^ q.complexity ≤ 2 ^ q.complexity * p.numLeaves ^ 2 := by
   let target : ℕ → Prop := fun n =>

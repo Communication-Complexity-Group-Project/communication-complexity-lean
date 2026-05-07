@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026 Lucy Horowitz, Timothe Kasriel, and Mihir Singhal. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Lucy Horowitz, Timothe Kasriel, Mihir Singhal
+-/
+
 import CommunicationComplexity.Basic
 import CommunicationComplexity.Deterministic.UpperBounds
 import CommunicationComplexity.Deterministic.Rectangle
@@ -26,7 +32,7 @@ theorem disjointness_comm (n : ℕ) (X Y : Set (Fin n)) :
 def foolingSet (n : ℕ) : Set (Set (Fin n) × Set (Fin n)) :=
   {p | p.2 = p.1ᶜ}
 
-/-- Claim 1.21: the pairs `(X, Xᶜ)` form a fooling set for disjointness. -/
+/-- The pairs `(X, Xᶜ)` form a fooling set for disjointness. -/
 theorem foolingSet_isFoolingSet (n : ℕ) :
     IsFoolingSet (foolingSet n) (disjointness n) := by
   intro R hR hmono p hp q hq
@@ -100,7 +106,7 @@ theorem communicationComplexity_le (n : ℕ) :
 communication complexity at least `n + 1`. -/
 theorem le_communicationComplexity (n : ℕ) (hn : 1 ≤ n) :
     (n + 1 : ℕ) ≤ Deterministic.communicationComplexity (disjointness n) := by
-  apply Deterministic.communicationComplexity_lower_bound
+  apply Deterministic.le_communicationComplexity_of_forall_lt_ncard
   intro Part hPart
   choose rect hrect_mem hrect_in using fun X : Set (Fin n) =>
     monoPartition_point_mem hPart (X, Xᶜ)

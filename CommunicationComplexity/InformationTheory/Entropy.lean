@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026 Lucy Horowitz, Timothe Kasriel, and Mihir Singhal. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Lucy Horowitz, Timothe Kasriel, Mihir Singhal
+-/
+
 import CommunicationComplexity.FiniteProbabilitySpace
 import PFR.ForMathlib.Entropy.Basic
 
@@ -534,7 +540,7 @@ theorem condMutualInfo_prod_conditioning_eq_sum
 open Classical in
 /-- If an event is determined by the conditioning variable, then the contribution of the
 conditional mutual information on that event is bounded by the original conditional mutual
-information.  This is the information-theoretic reweighting used in Claim 6.21. -/
+information. -/
 theorem measureReal_mul_cond_condMutualInfo_le_condMutualInfo_of_event_eq_preimage
     {Ω₀ S₀ T₀ U₀ : Type*}
     [MeasurableSpace Ω₀] [MeasurableSpace S₀] [MeasurableSpace T₀] [MeasurableSpace U₀]

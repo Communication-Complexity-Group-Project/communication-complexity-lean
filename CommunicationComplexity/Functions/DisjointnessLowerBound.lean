@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026 Lucy Horowitz, Timothe Kasriel, and Mihir Singhal. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Lucy Horowitz, Timothe Kasriel, Mihir Singhal
+-/
+
 import CommunicationComplexity.Functions.Disjointness
 import CommunicationComplexity.FiniteProbabilitySpace
 import CommunicationComplexity.Deterministic.Transcript
@@ -8,27 +14,17 @@ import CommunicationComplexity.PublicCoin.Minimax
 import Mathlib.Probability.UniformOn
 import PFR.Kullback
 
+/-!
+The disjointness lower-bound proof in this file is adapted from Chapter 6 of
+*Communication Complexity* by Rao and Yehudayoff.
+-/
+
 namespace CommunicationComplexity
 
 open MeasureTheory ProbabilityTheory
 open scoped BigOperators
 
 namespace Functions.Disjointness
-
-/-!
-This file restarts the randomized lower bound for disjointness following the corrected proof in
-`.codex/disjointness.txt`.
-
-The proof uses the textbook hard distribution: choose a special coordinate `T`; at `T`, sample
-independent bits `(X_T, Y_T)`; away from `T`, sample one of `(0,0)`, `(1,0)`, `(0,1)` uniformly
-and independently.  The information terms below are the corrected ones from (6.6):
-
-* Alice: `I(X_T : M | T, X_<T, Y_≥T, D)`.
-* Bob: `I(Y_T : M | T, X_≤T, Y_>T, D)`.
-
-The old file used the wrong `Y_≠T` / `X_≠T` conditioning terms, which came from the typoed
-transcription and led to a different proof.
--/
 
 namespace RandomizedLowerBound
 
@@ -430,12 +426,12 @@ def yAfterSpecial (ω : HardSample n) : Fin n → Bool :=
 def yGeSpecial (ω : HardSample n) : Fin n → Bool :=
   fun i => if ω.T ≤ i then yBit n ω i else false
 
-/-- The common coarse variable `T, X_<T, Y_>T` used in Claim 6.21. -/
+/-- The common coarse variable `T, X_<T, Y_>T` used for special-coordinate fibers. -/
 def coarseConditioning (ω : HardSample n) :
     Fin n × (Fin n → Bool) × (Fin n → Bool) :=
   (specialCoordinate n ω, xBeforeSpecial n ω, yAfterSpecial n ω)
 
-/-- The corrected Alice conditioning variable from (6.6): `T, X_<T, Y_≥T`. -/
+/-- Alice's corrected special-coordinate conditioning variable: `T, X_<T, Y_≥T`. -/
 def aliceClaimConditioning (ω : HardSample n) :
     Fin n × (Fin n → Bool) × (Fin n → Bool) :=
   (specialCoordinate n ω, xBeforeSpecial n ω, yGeSpecial n ω)
@@ -453,12 +449,12 @@ theorem aliceClaimConditioning_eq_specialCoordinate_prod_dynamic :
       fun ω => (specialCoordinate n ω, aliceDynamicConditioning n ω) := by
   rfl
 
-/-- The corrected Bob conditioning variable from (6.6): `T, X_≤T, Y_>T`. -/
+/-- Bob's corrected special-coordinate conditioning variable: `T, X_≤T, Y_>T`. -/
 def bobClaimConditioning (ω : HardSample n) :
     Fin n × (Fin n → Bool) × (Fin n → Bool) :=
   (specialCoordinate n ω, xLeSpecial n ω, yAfterSpecial n ω)
 
-/-- Alice's fixed-coordinate bit used in Lemma 6.20. -/
+/-- Alice's bit at a fixed coordinate. -/
 def fixedXBit (i : Fin n) (ω : HardSample n) : Bool :=
   xBit n ω i
 
@@ -466,31 +462,31 @@ def fixedXBit (i : Fin n) (ω : HardSample n) : Bool :=
 def fixedXStrictPrefix (i : Fin n) (ω : HardSample n) : Fin i.1 → Bool :=
   fun j => xBit n ω ⟨j.1, lt_trans j.2 i.2⟩
 
-/-- Alice's fixed-coordinate `X_<i` prefix used in Lemma 6.20. -/
+/-- Alice's fixed-coordinate `X_<i` prefix. -/
 def fixedXBefore (i : Fin n) (ω : HardSample n) : Fin n → Bool :=
   fun j => if j < i then xBit n ω j else false
 
-/-- Bob's fixed-coordinate `Y_<i` prefix used in Lemma 6.20. -/
+/-- Bob's fixed-coordinate `Y_<i` prefix. -/
 def fixedYBefore (i : Fin n) (ω : HardSample n) : Fin n → Bool :=
   fun j => if j < i then yBit n ω j else false
 
-/-- Bob's fixed-coordinate `Y_≥i` suffix used in Lemma 6.20. -/
+/-- Bob's fixed-coordinate `Y_≥i` suffix. -/
 def fixedYGe (i : Fin n) (ω : HardSample n) : Fin n → Bool :=
   fun j => if i ≤ j then yBit n ω j else false
 
-/-- The fixed-coordinate Alice conditioning variable `X_<i, Y_≥i` from Lemma 6.20. -/
+/-- The fixed-coordinate Alice conditioning variable `X_<i, Y_≥i`. -/
 def fixedAliceConditioning (i : Fin n) (ω : HardSample n) :
     (Fin n → Bool) × (Fin n → Bool) :=
   (fixedXBefore n i ω, fixedYGe n i ω)
 
-/-- The fixed-coordinate conditioning variable `(X_<i, Y)` used in the chain-rule sum in
-Lemma 6.20.  The `X_<i` prefix is represented without padding so that recodings are injective. -/
+/-- The fixed-coordinate conditioning variable `(X_<i, Y)` used in the chain-rule sum.
+The `X_<i` prefix is represented without padding so that recodings are injective. -/
 def fixedAliceFullYConditioning (i : Fin n) (ω : HardSample n) :
     (Fin i.1 → Bool) × (Fin n → Bool) :=
   (fixedXStrictPrefix n i ω, yVector n ω)
 
 /-- Recode `(X_<i, Y)` as `(Y_<i, X_<i, Y_≥i)`, the conditioning variable produced by
-the textbook chain-rule split. -/
+the chain-rule split. -/
 def fixedAliceChainConditioningValue (i : Fin n)
     (c : (Fin i.1 → Bool) × (Fin n → Bool)) :
     (Fin n → Bool) × ((Fin n → Bool) × (Fin n → Bool)) :=
@@ -630,7 +626,7 @@ open Classical in
 noncomputable instance rawZTypeDecidableEq (p : ProtocolType n) : DecidableEq (RawZType n p) :=
   Classical.decEq _
 
-/-- The raw `Z = (M, T, X_<T, Y_>T)` variable used in Claim 6.21. -/
+/-- The raw `Z = (M, T, X_<T, Y_>T)` variable used for coarse special-coordinate fibers. -/
 noncomputable def rawZVariable
     (p : ProtocolType n)
     (ω : HardSample n) : RawZType n p :=
@@ -697,7 +693,7 @@ noncomputable instance zTypeFintype (p : ProtocolType n) : Fintype (ZType n p) :
 
 instance zTypeMeasurableSpace (p : ProtocolType n) : MeasurableSpace (ZType n p) := ⊤
 
-/-- The `Z = (M, T, X_<T, Y_>T)` variable used in Claim 6.21. -/
+/-- The `Z = (M, T, X_<T, Y_>T)` variable used for coarse special-coordinate fibers. -/
 noncomputable def zVariable
     (p : ProtocolType n)
     (ω : HardSample n) : ZType n p :=
@@ -1631,7 +1627,7 @@ theorem disjointCondMeasure_measureReal_specialY_false :
 
 open Classical in
 /-- The disjoint-conditioned hard distribution, further conditioned on Bob's special bit being
-`false`. This is the Alice-side conditioning used in the Claim 6.21 Pinsker step. -/
+`false`. This is the Alice-side conditioning used in the one-bit Pinsker step. -/
 noncomputable def disjointSpecialYFalseMeasure : Measure (HardSample n) :=
   (disjointCondMeasure n)[|(specialY n) ⁻¹' {false}]
 
@@ -1821,7 +1817,7 @@ def coordinateYBefore (i : Fin n) (coords : Fin n → DisjointCoordinate) : Fin 
 def coordinateYGe (i : Fin n) (coords : Fin n → DisjointCoordinate) : Fin n → Bool :=
   fun j => if i ≤ j then coordinateYBit n j coords else false
 
-/-- The coordinate-vector version of Alice's fixed-coordinate Lemma 6.20 conditioning. -/
+/-- The coordinate-vector version of Alice's fixed-coordinate conditioning. -/
 def coordinateAliceConditioning (i : Fin n) (coords : Fin n → DisjointCoordinate) :
     (Fin n → Bool) × (Fin n → Bool) :=
   (coordinateXBefore n i coords, coordinateYGe n i coords)
@@ -2008,7 +2004,7 @@ theorem uniformDisjointCoordinateVector_indep_coordinateXBit_coordinateYBefore_c
     (Filter.EventuallyEq.of_eq hright)
 
 open Classical in
-/-- Product-coordinate form of the textbook independence input:
+/-- Product-coordinate form of the fixed-coordinate independence input:
 `I(X_i : Y_<i | X_<i,Y_≥i)=0`, first with the one-bit-per-coordinate conditioning. -/
 theorem uniformDisjointCoordinateVector_crossInfo_condBits_eq_zero (i : Fin n) :
     I[coordinateXBit n i : coordinateYBefore n i | coordinateAliceCondBits n i ;
@@ -2028,8 +2024,8 @@ theorem uniformDisjointCoordinateVector_crossInfo_condBits_eq_zero (i : Fin n) :
   rw [hzero, mul_zero]
 
 open Classical in
-/-- Product-coordinate form of the textbook independence input, using the padded-pair
-conditioning variable from Lemma 6.20. -/
+/-- Product-coordinate form of the fixed-coordinate independence input, using the padded-pair
+conditioning variable. -/
 theorem uniformDisjointCoordinateVector_crossInfo_eq_zero (i : Fin n) :
     I[coordinateXBit n i : coordinateYBefore n i | coordinateAliceConditioning n i ;
       uniformDisjointCoordinateVector n] = 0 := by
@@ -2390,8 +2386,8 @@ theorem volume_cond_eq_disjointCondMeasure_cond_of_subset_disjointEvent
   simp [hA]
 
 /-- Conditioning on `(X_T,Y_T)=(0,0)` costs at most a factor `2` relative to conditioning only on
-`Y_T=false` under the disjoint distribution. This is the reweighting step before Markov in Claim
-6.21. -/
+`Y_T=false` under the disjoint distribution. This is the reweighting step before Markov's
+inequality. -/
 theorem volume_cond_specialZeroZero_measureReal_le_two_mul_disjointSpecialYFalseMeasure
     (S : Set (HardSample n)) :
     (volume[|specialZeroZero n]).real S ≤
@@ -3131,7 +3127,7 @@ theorem disjointSpecialYFalseMeasure_integral_xDistance_le_of_integral_sq_le
   exact (sq_le_sq₀ hint_nonneg hγ_sq_nonneg).mp hsq_bound
 
 open Classical in
-/-- Markov's inequality converts the textbook Alice-side average-distance estimate under
+/-- Markov's inequality converts the Alice-side average-distance estimate under
 `D ∧ Y_T=false` into a bad-`Z` probability bound. -/
 theorem disjointSpecialYFalseMeasure_xDistance_bad_le_of_integral_le
     (p : ProtocolType n)
@@ -3177,7 +3173,7 @@ def goodZ
     (z : ZType n p) : Prop :=
   zDistance n p z ≤ 2 * γ
 
-/-- The good-fiber event `𝓖` in Claim 6.21, pulled back to the hard sample space through `Z`. -/
+/-- The good-fiber event, pulled back to the hard sample space through `Z`. -/
 def goodZEvent
     (p : ProtocolType n) (γ : ℝ) :
     Set (HardSample n) :=
@@ -3660,7 +3656,7 @@ theorem conditionalSpecialXLaw_eq_cond_specialY_of_prod
   field_simp [hY]
 
 open Classical in
-/-- Rectangle switching implies the textbook fiber identity
+/-- Rectangle switching implies the fiber identity
 `p(X_T | Z=z) = p(X_T | Z=z, Y_T=false)`. -/
 theorem conditionalSpecialXLaw_eq_cond_specialYFalse
     (p : ProtocolType n)
@@ -3716,9 +3712,9 @@ theorem xFiberKL_eq_disjointSpecialYFalseMeasure_cond_zVariable_klDiv_of_ne_zero
     (zFiberMeasure_specialYFalse_ne_zero_of_disjointSpecialYFalseMeasure_ne_zero n p z hz)
 
 open Classical in
-/-- Product-distribution step in Lemma 6.22 for `Z` fibers.  This uses the textbook rectangle
-fact: conditioned on a transcript rectangle and the coarse data, the special bits are independent,
-so the pair TV distance is controlled by the two one-bit TV distances. -/
+/-- Product-distribution step for `Z` fibers. Conditioned on a transcript rectangle and the
+coarse data, the special bits are independent, so the pair TV distance is controlled by the two
+one-bit TV distances. -/
 theorem zDistance_le_xDistance_add_yDistance
     (p : ProtocolType n)
     (z : ZType n p) :
@@ -3740,19 +3736,19 @@ theorem mem_goodZEvent_of_xDistance_yDistance_le
   change zDistance n p (zVariable n p ω) ≤ 2 * γ
   linarith
 
-/-- The corrected Alice information term in (6.6):
+/-- The corrected Alice special-coordinate information term:
 `I(X_T : M | T, X_<T, Y_≥T, D)`. -/
 noncomputable def aliceInfoTerm
     (p : ProtocolType n) : ℝ :=
   I[specialX n : message n p | aliceClaimConditioning n ; disjointCondMeasure n]
 
-/-- The corrected Bob information term in (6.6):
+/-- The corrected Bob special-coordinate information term:
 `I(Y_T : M | T, X_≤T, Y_>T, D)`. -/
 noncomputable def bobInfoTerm
     (p : ProtocolType n) : ℝ :=
   I[specialY n : message n p | bobClaimConditioning n ; disjointCondMeasure n]
 
-/-- The total corrected special-coordinate information from (6.6). -/
+/-- The total corrected special-coordinate information. -/
 noncomputable def claimInfo
     (p : ProtocolType n) : ℝ :=
   aliceInfoTerm n p + bobInfoTerm n p
@@ -3907,7 +3903,7 @@ theorem claimInfo_dualProtocol
     bobInfoTerm_dualProtocol_eq_aliceInfoTerm, claimInfo, add_comm]
 
 open Classical in
-/-- The fixed-coordinate summand `I(X_i : M | X_<i, Y_≥i)` in Lemma 6.20. -/
+/-- The fixed-coordinate summand `I(X_i : M | X_<i, Y_≥i)`. -/
 noncomputable def fixedAliceInfoTerm
     (p : ProtocolType n)
     (i : Fin n) : ℝ :=
@@ -3921,12 +3917,12 @@ noncomputable def fixedAliceFullYInfoTerm
   I[fixedXBit n i : message n p | fixedAliceFullYConditioning n i ; disjointCondMeasure n]
 
 open Classical in
-/-- The zero cross-information term `I(X_i : Y_<i | X_<i, Y_≥i)` in Lemma 6.20. -/
+/-- The zero cross-information term `I(X_i : Y_<i | X_<i, Y_≥i)`. -/
 noncomputable def fixedAliceCrossInfoTerm (i : Fin n) : ℝ :=
   I[fixedXBit n i : fixedYBefore n i | fixedAliceConditioning n i ; disjointCondMeasure n]
 
 open Classical in
-/-- Textbook Lemma 6.20 independence input for the hard distribution conditioned on `D`:
+/-- Fixed-coordinate independence input for the hard distribution conditioned on `D`:
 `I(X_i : Y_<i | X_<i, Y_≥i, D) = 0`. -/
 theorem fixedAliceCrossInfoTerm_eq_zero (i : Fin n) :
     fixedAliceCrossInfoTerm n i = 0 := by
@@ -3946,7 +3942,7 @@ theorem fixedAliceCrossInfoTerm_eq_zero (i : Fin n) :
   exact uniformDisjointCoordinateVector_crossInfo_eq_zero n i
 
 open Classical in
-/-- Fixed-coordinate chain-rule inequality from Lemma 6.20:
+/-- Fixed-coordinate chain-rule inequality:
 `I(X_i : M | X_<i,Y_≥i) ≤ I(X_i : M | X_<i,Y)`. -/
 theorem fixedAliceInfoTerm_le_fixedAliceFullYInfoTerm
     (p : ProtocolType n)
@@ -3995,7 +3991,7 @@ theorem fixedAliceInfoTerm_le_fixedAliceFullYInfoTerm
           rw [hcross, zero_add, hrec]
 
 open Classical in
-/-- Summing the fixed-coordinate inequalities from Lemma 6.20. -/
+/-- Summing the fixed-coordinate inequalities. -/
 theorem sum_fixedAliceInfoTerm_le_sum_fixedAliceFullYInfoTerm
     (p : ProtocolType n) :
     (∑ i : Fin n, fixedAliceInfoTerm n p i) ≤
@@ -4003,7 +3999,7 @@ theorem sum_fixedAliceInfoTerm_le_sum_fixedAliceFullYInfoTerm
   exact Finset.sum_le_sum fun i _ => fixedAliceInfoTerm_le_fixedAliceFullYInfoTerm n p i
 
 open Classical in
-/-- Textbook chain rule for the full Alice vector:
+/-- Chain rule for the full Alice vector:
 `∑ᵢ I(X_i : M | X_<i,Y,D) = I(X : M | Y,D)`. -/
 theorem sum_fixedAliceFullYInfoTerm_eq_xVector_info
     (p : ProtocolType n) :
@@ -4020,11 +4016,10 @@ theorem sum_fixedAliceFullYInfoTerm_eq_xVector_info
   rfl
 
 open Classical in
-/-- Textbook Lemma 6.20 chain-rule step for the Alice summands:
+/-- Chain-rule step for the Alice summands:
 `∑ᵢ I(X_i : M | X_<i, Y_≥i, D) ≤ I(X : M | Y, D)`.
 
-This is the proof-specific instance of Lemma 6.20; its only probabilistic input is
-`fixedAliceCrossInfoTerm_eq_zero`. -/
+Its only probabilistic input is `fixedAliceCrossInfoTerm_eq_zero`. -/
 theorem sum_fixedAliceInfoTerm_le_xVector_info
     (p : ProtocolType n) :
     (∑ i : Fin n, fixedAliceInfoTerm n p i) ≤
@@ -4054,7 +4049,7 @@ theorem aliceInfoTerm_eq_sum_specialCoordinate_fiber_info
   simp_rw [disjointCondMeasure_measureReal_specialCoordinate_preimage_singleton]
 
 open Classical in
-/-- Textbook uniformity/independence step for the special coordinate: after conditioning on
+/-- Uniformity/independence step for the special coordinate: after conditioning on
 `T=i`, the random-coordinate Alice information term is the fixed-coordinate summand. -/
 theorem aliceDynamicConditioning_fiber_info_eq_fixedAliceInfoTerm
     (p : ProtocolType n) (i : Fin n) :
@@ -4184,8 +4179,7 @@ theorem aliceDynamicConditioning_fiber_info_eq_fixedAliceInfoTerm
 
 open Classical in
 /-- Averaging over the special coordinate: conditioned on `D`, `T` is uniform and independent of
-`(X,Y,M)`, so the Alice term in (6.6) is the average of the fixed-coordinate Lemma 6.20
-summands. -/
+`(X,Y,M)`, so the Alice term is the average of the fixed-coordinate summands. -/
 theorem aliceInfoTerm_eq_average_fixedAliceInfoTerm
     (p : ProtocolType n) :
     aliceInfoTerm n p =
@@ -4196,7 +4190,8 @@ theorem aliceInfoTerm_eq_average_fixedAliceInfoTerm
   ring
 
 open Classical in
-/-- Alice half of Lemma 6.20, after conditioning on disjointness and averaging over the uniform
+/-- Alice fixed-coordinate chain-rule bound after conditioning on disjointness and averaging over
+the uniform
 special coordinate:
 `I(X_T : M | T, X_<T, Y_≥T, D) ≤ I(X : M | Y, D) / n`. -/
 theorem aliceInfoTerm_le_average_xVector_info
@@ -4207,7 +4202,8 @@ theorem aliceInfoTerm_le_average_xVector_info
   exact div_le_div_of_nonneg_right (sum_fixedAliceInfoTerm_le_xVector_info n p) (by positivity)
 
 open Classical in
-/-- Bob half of Lemma 6.20, after conditioning on disjointness and averaging over the uniform
+/-- Bob fixed-coordinate chain-rule bound after conditioning on disjointness and averaging over
+the uniform
 special coordinate:
 `I(Y_T : M | T, X_≤T, Y_>T, D) ≤ I(Y : M | X, D) / n`. -/
 theorem bobInfoTerm_le_average_yVector_info
@@ -4245,8 +4241,7 @@ theorem yVector_message_info_le_complexity_mul_log_two
       (entropy_message_le_complexity_mul_log_two_of_measure n p (disjointCondMeasure n))
 
 open Classical in
-/-- Alice half of Lemma 6.20 plus the entropy bound `H(M) ≤ ℓ`, averaged over the uniform
-special coordinate. -/
+/-- Alice's averaged fixed-coordinate information plus the entropy bound `H(M) ≤ ℓ`. -/
 theorem aliceInfoTerm_le_average_entropy_bound
     (p : ProtocolType n) :
     aliceInfoTerm n p ≤ (p.complexity * Real.log 2) / (n : ℝ) := by
@@ -4256,8 +4251,7 @@ theorem aliceInfoTerm_le_average_entropy_bound
   exact hchain.trans (div_le_div_of_nonneg_right hentropy hn_nonneg)
 
 open Classical in
-/-- Bob half of Lemma 6.20 plus the entropy bound `H(M) ≤ ℓ`, averaged over the uniform special
-coordinate. -/
+/-- Bob's averaged fixed-coordinate information plus the entropy bound `H(M) ≤ ℓ`. -/
 theorem bobInfoTerm_le_average_entropy_bound
     (p : ProtocolType n) :
     bobInfoTerm n p ≤ (p.complexity * Real.log 2) / (n : ℝ) := by
@@ -4266,9 +4260,8 @@ theorem bobInfoTerm_le_average_entropy_bound
   have hn_nonneg : 0 ≤ (n : ℝ) := by positivity
   exact hchain.trans (div_le_div_of_nonneg_right hentropy hn_nonneg)
 
-/-- Lemma 6.20 plus the entropy bound `H(M) ≤ ℓ`: the corrected claim information is at most
-the averaged full-vector transcript information.  This is the part before (6.6) in
-`.codex/disjointness.txt`. -/
+/-- The corrected claim information is at most the averaged full-vector transcript information
+coming from the entropy bound `H(M) ≤ ℓ`. -/
 theorem claimInfo_le_average_info_upper
     (p : ProtocolType n) :
     claimInfo n p ≤ 2 * (p.complexity * Real.log 2) / (n : ℝ) := by
@@ -4300,8 +4293,8 @@ theorem yGeSpecial_eq_yAfterSpecial_of_specialY_false
     · simp [yGeSpecial, yAfterSpecial, hle, hlt]
 
 open Classical in
-/-- On the branch `Y_T=false`, Alice's corrected Claim 6.21 conditioning is exactly the coarse
-conditioning from the textbook `Z=(M,T,X_<T,Y_>T)`. -/
+/-- On the branch `Y_T=false`, Alice's corrected conditioning is exactly the coarse
+conditioning from `Z=(M,T,X_<T,Y_>T)`. -/
 theorem aliceClaimConditioning_eq_coarseConditioning_of_specialY_false
     {ω : HardSample n} (hY : specialY n ω = false) :
     aliceClaimConditioning n ω = coarseConditioning n ω := by
@@ -4325,14 +4318,14 @@ theorem aliceClaimConditioning_ae_eq_coarseConditioning_disjointSpecialYFalse :
   exact aliceClaimConditioning_eq_coarseConditioning_of_specialY_false n hY
 
 open Classical in
-/-- The Claim 6.21 Alice information term after additionally conditioning on `Y_T=false`:
+/-- The Alice information term after additionally conditioning on `Y_T=false`:
 `I(X_T : M | T, X_<T, Y_≥T, Y_T=0, D)`. -/
 noncomputable def aliceInfoTermSpecialYFalse
     (p : ProtocolType n) : ℝ :=
   I[specialX n : message n p | aliceClaimConditioning n ; disjointSpecialYFalseMeasure n]
 
 open Classical in
-/-- The same Alice `Y_T=false` information term using the textbook coarse conditioning
+/-- The same Alice `Y_T=false` information term using the coarse conditioning
 `T, X_<T, Y_>T`. -/
 noncomputable def aliceCoarseInfoTermSpecialYFalse
     (p : ProtocolType n) : ℝ :=
@@ -4438,7 +4431,7 @@ theorem integral_xFiberKL_disjointSpecialYFalse_eq_condKLDiv_zVariable
       uniformBool_toPMF_ne_zero]
 
 open Classical in
-/-- Flip only Alice's special-coordinate bit.  This preserves the coarse Claim 6.21 data
+/-- Flip only Alice's special-coordinate bit.  This preserves the coarse conditioning data
 `T, X_<T, Y_>T` and toggles `X_T`. -/
 def flipSpecialX (ω : HardSample n) : HardSample n where
   T := ω.T
@@ -4630,7 +4623,7 @@ theorem disjointSpecialYFalseMeasure_measureReal_specialX_inter_coarseConditioni
 
 open Classical in
 /-- Under `D ∧ Y_T=false`, the coarse data `T, X_<T, Y_>T` is independent of `X_T`.
-This is the sampling independence used in Claim 6.21 before adding the transcript rectangle. -/
+This is the sampling independence used before adding the transcript rectangle. -/
 theorem mutualInfo_specialX_coarseConditioning_disjointSpecialYFalse_eq_zero :
     I[specialX n : coarseConditioning n ; disjointSpecialYFalseMeasure n] = 0 := by
   let μ : Measure (HardSample n) := disjointSpecialYFalseMeasure n
@@ -4649,7 +4642,7 @@ theorem mutualInfo_specialX_coarseConditioning_disjointSpecialYFalse_eq_zero :
   rw [disjointSpecialYFalseMeasure_measureReal_specialX_singleton]
 
 open Classical in
-/-- The full `Z=(M,coarse)` mutual information is the coarse Claim 6.21 information term,
+/-- The full `Z=(M,coarse)` mutual information is the coarse information term,
 because the coarse part alone is independent of `X_T` under `D ∧ Y_T=false`. -/
 theorem mutualInfo_specialX_zVariable_eq_aliceCoarseInfoTermSpecialYFalse
     (p : ProtocolType n) :
@@ -4705,10 +4698,10 @@ theorem mutualInfo_specialX_zVariable_eq_aliceCoarseInfoTermSpecialYFalse
           simp [aliceCoarseInfoTermSpecialYFalse, μ]
 
 open Classical in
-/-- Textbook Claim 6.21 KL identification with the coarse `Z` conditioning:
-the average Alice one-bit fiber KL is the conditional mutual information
+/-- KL identification with the coarse `Z` conditioning: the average Alice one-bit fiber KL is the
+conditional mutual information
 `I(X_T : M | T,X_<T,Y_>T,Y_T=0,D)`. -/
-theorem xFiberKL_integral_eq_aliceCoarseInfoTermSpecialYFalse
+theorem integral_xFiberKL_disjointSpecialYFalse_eq_aliceCoarseInfoTermSpecialYFalse
     (p : ProtocolType n) :
     ∫ ω, xFiberKL n p (zVariable n p ω) ∂(disjointSpecialYFalseMeasure n) =
       aliceCoarseInfoTermSpecialYFalse n p := by
@@ -4717,18 +4710,18 @@ theorem xFiberKL_integral_eq_aliceCoarseInfoTermSpecialYFalse
   exact mutualInfo_specialX_zVariable_eq_aliceCoarseInfoTermSpecialYFalse n p
 
 open Classical in
-/-- Textbook Claim 6.21 identification of the average Alice one-bit fiber KL with the conditional
-mutual information under `Y_T=false`.  This packages the step
+/-- Identification of the average Alice one-bit fiber KL with the conditional mutual information
+under `Y_T=false`.  This packages the step
 `p(x_t | z) = p(x_t | z, y_t=0) = p(x_t | z, y_t=0, D)` coming from independence and the
 rectangle property of the transcript. -/
-theorem xFiberKL_integral_eq_aliceInfoTermSpecialYFalse
+theorem integral_xFiberKL_disjointSpecialYFalse_eq_aliceInfoTermSpecialYFalse
     (p : ProtocolType n) :
     ∫ ω, xFiberKL n p (zVariable n p ω) ∂(disjointSpecialYFalseMeasure n) =
       aliceInfoTermSpecialYFalse n p := by
   rw [aliceInfoTermSpecialYFalse_eq_aliceCoarseInfoTermSpecialYFalse]
-  exact xFiberKL_integral_eq_aliceCoarseInfoTermSpecialYFalse n p
+  exact integral_xFiberKL_disjointSpecialYFalse_eq_aliceCoarseInfoTermSpecialYFalse n p
 
-/-- Textbook Claim 6.21 reweighting:
+/-- Alice-side reweighting:
 `(2/3) I(X_T : M | T, X_< T, Y_≥T, Y_T=0, D) ≤
  I(X_T : M | T, X_< T, Y_≥T, D)`.
 
@@ -4755,19 +4748,19 @@ theorem two_thirds_mul_aliceInfoTermSpecialYFalse_le_aliceInfoTerm
   simpa [μ, Y0, hmass, aliceInfoTermSpecialYFalse, aliceInfoTerm,
     disjointSpecialYFalseMeasure] using h
 
-/-- Textbook Claim 6.21, Alice information step under `D ∧ Y_T=false`: the average one-bit KL
-cost is bounded by Alice's term from (6.6), with the `2/3` conditioning factor. -/
-theorem claim621_x_fiberKL_disjointSpecialYFalse_le_three_halves_aliceInfoTerm
+/-- Alice information step under `D ∧ Y_T=false`: the average one-bit KL cost is bounded by
+Alice's information term, with the `2/3` conditioning factor. -/
+theorem integral_xFiberKL_disjointSpecialYFalse_le_three_halves_mul_aliceInfoTerm
     (p : ProtocolType n) :
     ∫ ω, xFiberKL n p (zVariable n p ω) ∂(disjointSpecialYFalseMeasure n) ≤
       (3 / 2 : ℝ) * aliceInfoTerm n p := by
-  rw [xFiberKL_integral_eq_aliceInfoTermSpecialYFalse]
+  rw [integral_xFiberKL_disjointSpecialYFalse_eq_aliceInfoTermSpecialYFalse]
   have h := two_thirds_mul_aliceInfoTermSpecialYFalse_le_aliceInfoTerm n p
   nlinarith
 
-/-- Textbook Claim 6.21, Alice information step under `D ∧ Y_T=false`: the average one-bit KL
-cost is bounded by the small total information assumption. -/
-theorem claim621_x_fiberKL_disjointSpecialYFalse_le
+/-- Alice information step under `D ∧ Y_T=false`: the average one-bit KL cost is bounded by the
+small total information assumption. -/
+theorem integral_xFiberKL_disjointSpecialYFalse_le_two_mul_gamma_pow_four
     (p : ProtocolType n)
     {γ : ℝ}
     (hγ : 0 < γ)
@@ -4775,15 +4768,14 @@ theorem claim621_x_fiberKL_disjointSpecialYFalse_le
     ∫ ω, xFiberKL n p (zVariable n p ω) ∂(disjointSpecialYFalseMeasure n) ≤
       2 * γ ^ 4 := by
   have hkl :=
-    claim621_x_fiberKL_disjointSpecialYFalse_le_three_halves_aliceInfoTerm n p
+    integral_xFiberKL_disjointSpecialYFalse_le_three_halves_mul_aliceInfoTerm n p
   have hγ4_nonneg : 0 ≤ γ ^ 4 := by positivity
   linarith [aliceInfoTerm_le_claimInfo n p]
 
-/-- Textbook Claim 6.21, Alice Pinsker/information step under `D ∧ Y_T=false`: the squared
-one-bit marginal distance has average at most `γ^4`. This is the KL-to-information comparison
-from the displayed
+/-- Alice Pinsker/information step under `D ∧ Y_T=false`: the squared one-bit marginal distance
+has average at most `γ^4`. This is the KL-to-information comparison from the inequality
 `(2/3) I(X_T : M | T, X_<T, Y_≥T, Y_T=0, D) ≤ I(X_T : M | T, X_<T, Y_≥T, D)`. -/
-theorem claim621_x_average_sq_distance_disjointSpecialYFalse_le
+theorem integral_xDistance_sq_disjointSpecialYFalse_le_gamma_pow_four
     (p : ProtocolType n)
     {γ : ℝ}
     (hγ : 0 < γ)
@@ -4792,13 +4784,13 @@ theorem claim621_x_average_sq_distance_disjointSpecialYFalse_le
       γ ^ 4 := by
   have hpinsker :=
     two_mul_integral_xDistance_sq_le_integral_xFiberKL_disjointSpecialYFalse n p
-  have hkl := claim621_x_fiberKL_disjointSpecialYFalse_le n p hγ hinfo
+  have hkl := integral_xFiberKL_disjointSpecialYFalse_le_two_mul_gamma_pow_four n p hγ hinfo
   nlinarith
 
 open Classical in
-/-- Alice marginal part of Claim 6.21: under the `(X_T,Y_T)=(0,0)` slice, the set of `Z` fibers
+/-- Alice marginal estimate: under the `(X_T,Y_T)=(0,0)` slice, the set of `Z` fibers
 whose Alice special-bit marginal is farther than `γ` from uniform has mass at most `γ / 2`. -/
-theorem claim621_x_bad_on_specialZeroZero_le
+theorem measureReal_specialZeroZero_inter_xDistance_bad_le
     (p : ProtocolType n)
     {γ : ℝ}
     (hγ : 0 < γ)
@@ -4808,7 +4800,7 @@ theorem claim621_x_bad_on_specialZeroZero_le
   let μ : Measure (HardSample n) := volume
   let badX : Set (HardSample n) := {ω | γ < xDistance n p (zVariable n p ω)}
   have hsquared :=
-    claim621_x_average_sq_distance_disjointSpecialYFalse_le n p hγ hinfo
+    integral_xDistance_sq_disjointSpecialYFalse_le_gamma_pow_four n p hγ hinfo
   have havg :
       ∫ ω, xDistance n p (zVariable n p ω) ∂(disjointSpecialYFalseMeasure n) ≤
         γ ^ 2 :=
@@ -4837,8 +4829,8 @@ theorem claim621_x_bad_on_specialZeroZero_le
   linarith
 
 open Classical in
-/-- Bob marginal part of Claim 6.21, symmetric to the Alice marginal estimate. -/
-theorem claim621_y_bad_on_specialZeroZero_le
+/-- Bob marginal estimate, symmetric to the Alice marginal estimate. -/
+theorem measureReal_specialZeroZero_inter_yDistance_bad_le
     (p : ProtocolType n)
     {γ : ℝ}
     (hγ : 0 < γ)
@@ -4848,13 +4840,13 @@ theorem claim621_y_bad_on_specialZeroZero_le
   have hinfoDual : claimInfo n (dualProtocol n p) ≤ 2 * γ ^ 4 / 3 := by
     simpa [claimInfo_dualProtocol n p] using hinfo
   have h :=
-    claim621_x_bad_on_specialZeroZero_le n (dualProtocol n p) hγ hinfoDual
+    measureReal_specialZeroZero_inter_xDistance_bad_le n (dualProtocol n p) hγ hinfoDual
   simpa [volume_specialZeroZero_inter_xDistance_dualProtocol_eq_yDistance n p γ] using h
 
-/-- Claim 6.21 in the corrected transcription. If the corrected information from (6.6) is
-`≤ 2γ^4 / 3`, then the set of `Z` fibers where the conditional law of `(X_T, Y_T)` is within
+/-- If the corrected special-coordinate information is `≤ 2γ^4 / 3`, then the set of `Z` fibers
+where the conditional law of `(X_T, Y_T)` is within
 `2γ` of uniform has hard-distribution mass at least `(1 - 4γ) / 4`. -/
-theorem textbook_claim_6_21
+theorem one_div_four_mul_one_sub_four_mul_le_measureReal_goodZEvent
     (p : ProtocolType n)
     {γ : ℝ}
     (hγ : 0 < γ)
@@ -4866,9 +4858,9 @@ theorem textbook_claim_6_21
   let badX : Set (HardSample n) := {ω | γ < xDistance n p (zVariable n p ω)}
   let badY : Set (HardSample n) := {ω | γ < yDistance n p (zVariable n p ω)}
   have hxBad : μ.real (A ∩ badX) ≤ γ / 2 := by
-    simpa [μ, A, badX] using claim621_x_bad_on_specialZeroZero_le n p hγ hinfo
+    simpa [μ, A, badX] using measureReal_specialZeroZero_inter_xDistance_bad_le n p hγ hinfo
   have hyBad : μ.real (A ∩ badY) ≤ γ / 2 := by
-    simpa [μ, A, badY] using claim621_y_bad_on_specialZeroZero_le n p hγ hinfo
+    simpa [μ, A, badY] using measureReal_specialZeroZero_inter_yDistance_bad_le n p hγ hinfo
   have hA : μ.real A = (1 / 4 : ℝ) := by
     simpa [μ, A] using measureReal_specialZeroZero n
   have hcover : A ⊆ goodZEvent n p γ ∪ (A ∩ badX) ∪ (A ∩ badY) := by
@@ -5017,34 +5009,34 @@ theorem goodZEvent_mul_quarter_sub_two_mul_le_protocolErrorEvent
   · simp only [hgood, ↓reduceIte, one_div, zero_mul]
     positivity
 
-/-- The final error calculation after Claim 6.21, phrased using distributional error. -/
-theorem distributionalError_lower_bound_of_goodZEvent
+/-- The final good-fiber error calculation, phrased using distributional error. -/
+theorem goodZEvent_mul_quarter_sub_two_mul_le_distributionalError
     (p : ProtocolType n) (γ : ℝ) :
     volume.real (goodZEvent n p γ) * ((1 / 4 : ℝ) - 2 * γ) ≤
       p.distributionalError (inputDist n) (disjointness n) := by
   rw [distributionalError_inputDist_eq_protocolErrorEvent]
   exact goodZEvent_mul_quarter_sub_two_mul_le_protocolErrorEvent n p γ
 
-/-- Textbook Claim 6.21 and the final error calculation: a deterministic protocol with
-distributional error at most `1 / 32` must reveal a constant amount of the corrected information
-from (6.6). -/
-theorem fixed_error_claimInfo_lower_bound
+/-- A deterministic protocol with distributional error at most `1 / 32` must reveal a constant
+amount of the corrected special-coordinate information. -/
+theorem one_div_32768_sq_lt_claimInfo_of_distributionalError_le
     (p : ProtocolType n)
     (herror : p.distributionalError (inputDist n) (disjointness n) ≤ 1 / 32) :
     (1 / 32768 : ℝ) ^ 2 < claimInfo n p := by
   by_contra hnot
   have hgood :=
-    textbook_claim_6_21 n p (γ := (1 / 64 : ℝ)) (by norm_num) (by linarith)
+    one_div_four_mul_one_sub_four_mul_le_measureReal_goodZEvent n p
+      (γ := (1 / 64 : ℝ)) (by norm_num) (by linarith)
   have herror_lower :=
-    distributionalError_lower_bound_of_goodZEvent n p (1 / 64)
+    goodZEvent_mul_quarter_sub_two_mul_le_distributionalError n p (1 / 64)
   linarith
 
-/-- Deterministic fixed-error disjointness lower bound from (6.6) and Lemma 6.20. -/
-theorem deterministic_complexity_lower_bound_textbook
+/-- Deterministic fixed-error disjointness lower bound from the information estimate. -/
+theorem const_mul_n_le_complexity_of_distributionalError_le
     (p : ProtocolType n)
     (herror : p.distributionalError (inputDist n) (disjointness n) ≤ 1 / 32) :
     ((1 / 32768 : ℝ) ^ 2) * (n : ℝ) / (3 * Real.log 2) ≤ p.complexity := by
-  have hinfo_lt := fixed_error_claimInfo_lower_bound n p herror
+  have hinfo_lt := one_div_32768_sq_lt_claimInfo_of_distributionalError_le n p herror
   have hupper := claimInfo_le_average_info_upper n p
   have hmain :
       (1 / 32768 : ℝ) ^ 2 < 2 * (p.complexity * Real.log 2) / (n : ℝ) :=
@@ -5057,20 +5049,20 @@ theorem deterministic_complexity_lower_bound_textbook
   rw [lt_div_iff₀ hn_pos] at hmain
   nlinarith
 
-/-- Public-coin fixed-error lower bound from the textbook deterministic distributional lower
-bound via minimax. -/
-theorem publicCoin_lower_bound_textbook
+/-- Public-coin fixed-error lower bound from the deterministic distributional lower bound via
+minimax. -/
+theorem lt_publicCoin_communicationComplexity_disjointness_of_lt_const_mul_n
     {k : ℕ}
     (hk : (k : ℝ) <
       ((1 / 32768 : ℝ) ^ 2) * (n : ℝ) / (3 * Real.log 2)) :
     k < PublicCoin.communicationComplexity (disjointness n) (1 / 32 : ℝ) := by
-  refine PublicCoin.minimax_lower_bound
+  refine PublicCoin.lt_communicationComplexity_of_forall_distributionalError_gt
     (f := disjointness n) (ε := (1 / 32 : ℝ)) (n := k) (μ := inputDist n) ?_
   intro p hp
   by_contra hnot
   have herror : p.distributionalError (inputDist n) (disjointness n) ≤ 1 / 32 :=
     le_of_not_gt hnot
-  have hlower := deterministic_complexity_lower_bound_textbook n p herror
+  have hlower := const_mul_n_le_complexity_of_distributionalError_le n p herror
   have hcomplexity_real : (p.complexity : ℝ) ≤ k := by
     exact_mod_cast hp
   linarith
@@ -5078,10 +5070,10 @@ theorem publicCoin_lower_bound_textbook
 /-- Headline theorem: public-coin randomized communication complexity of disjointness is linear at
 fixed error `1 / 32`, with a concrete conservative constant. The cutoff is the floor of the
 real number `n / 2^32`, so the asymptotic constant is stated over the reals. -/
-theorem publicCoin_communicationComplexity_disjointness_linear_lower_bound
+theorem floor_div_pow_lt_publicCoin_communicationComplexity_disjointness
     : Nat.floor ((n : ℝ) / (2 ^ 32 : ℝ)) <
       PublicCoin.communicationComplexity (disjointness n) (1 / 32 : ℝ) := by
-  apply publicCoin_lower_bound_textbook n
+  apply lt_publicCoin_communicationComplexity_disjointness_of_lt_const_mul_n n
   have hlog_lt_one : Real.log 2 < 1 := by
     have h := Real.log_lt_sub_one_of_pos (x := (2 : ℝ)) (by norm_num) (by norm_num)
     linarith
