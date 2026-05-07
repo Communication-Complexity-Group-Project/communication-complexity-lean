@@ -1,3 +1,4 @@
+import CommunicationComplexity.FiniteProbabilitySpace
 import PFR.ForMathlib.Entropy.Basic
 
 /-!
@@ -713,6 +714,20 @@ theorem condMutualInfo_congr_ae
       (hXae.prodMk hYae) hZae
   rw [hXcond, hYcond, hXYcond]
 
+/-- Finite-space version of `condMutualInfo_congr_ae` which infers measurability from the
+finite measurable sample space and finite range hypotheses from the finite alphabets. -/
+theorem condMutualInfo_congr_ae_finite
+    {X' : Ω → S} {Y' : Ω → T} {Z' : Ω → U}
+    [CommunicationComplexity.FiniteMeasureSpace Ω]
+    [Finite S] [Finite T] [Finite U]
+    [IsProbabilityMeasure μ]
+    (hXae : X =ᵐ[μ] X') (hYae : Y =ᵐ[μ] Y') (hZae : Z =ᵐ[μ] Z') :
+    I[X : Y | Z ; μ] = I[X' : Y' | Z' ; μ] := by
+  exact condMutualInfo_congr_ae
+    Measurable.of_discrete Measurable.of_discrete Measurable.of_discrete
+    Measurable.of_discrete Measurable.of_discrete Measurable.of_discrete
+    hXae hYae hZae
+
 /-- Conditional mutual information is determined by the joint law of `(X, Y, Z)`. -/
 theorem IdentDistrib.condMutualInfo_eq
     {Ω' : Type*} [MeasurableSpace Ω'] {μ' : Measure Ω'}
@@ -740,6 +755,23 @@ theorem IdentDistrib.condMutualInfo_eq
   rw [IdentDistrib.condEntropy_eq hX hZ hX' hZ' hXZ,
     IdentDistrib.condEntropy_eq hY hZ hY' hZ' hYZ,
     IdentDistrib.condEntropy_eq (hX.prodMk hY) hZ (hX'.prodMk hY') hZ' hXYZ]
+
+/-- Finite-space version of `IdentDistrib.condMutualInfo_eq` which infers measurability from the
+finite measurable sample spaces and finite range hypotheses from the finite alphabets. -/
+theorem IdentDistrib.condMutualInfo_eq_finite
+    {Ω' : Type*} [MeasurableSpace Ω'] {μ' : Measure Ω'}
+    {X' : Ω' → S} {Y' : Ω' → T} {Z' : Ω' → U}
+    [CommunicationComplexity.FiniteMeasureSpace Ω]
+    [CommunicationComplexity.FiniteMeasureSpace Ω']
+    [Finite S] [Finite T] [Finite U]
+    [IsProbabilityMeasure μ] [IsProbabilityMeasure μ']
+    (h : IdentDistrib (fun ω => (X ω, Y ω, Z ω))
+        (fun ω => (X' ω, Y' ω, Z' ω)) μ μ') :
+    I[X : Y | Z ; μ] = I[X' : Y' | Z' ; μ'] := by
+  exact IdentDistrib.condMutualInfo_eq
+    Measurable.of_discrete Measurable.of_discrete Measurable.of_discrete
+    Measurable.of_discrete Measurable.of_discrete Measurable.of_discrete
+    h
 
 /-- Conditional mutual information is unchanged by injective recodings of the right variable
 and the conditioning variable. -/
