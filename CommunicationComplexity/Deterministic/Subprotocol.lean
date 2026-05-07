@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026 Lucy Horowitz, Timothe Kasriel, and Mihir Singhal. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Lucy Horowitz, Timothe Kasriel, Mihir Singhal
+-/
+
 import CommunicationComplexity.Trees.Basic
 import Mathlib.Data.Set.Basic
 
@@ -74,8 +80,7 @@ private lemma balanced_aux (p : Protocol X Y α) (n : ℕ) (hn : 1 < n)
         obtain ⟨s, hs, hs1, hs2⟩ := ih true hchild
         exact ⟨s, hs.trans (IsSubprotocol.bob_true f P (P true) (IsSubprotocol.refl _)), hs1, hs2⟩
 
-/-- Protocol-level version of R&Y Lemma 1.8: if a protocol has more than 1 leaf there is a
-subprotocol with a reasonable number of leaves. -/
+/-- If a protocol has more than one leaf, it has a subprotocol with a balanced number of leaves. -/
 theorem balanced_subprotocol (p : Protocol X Y α) (hn : 1 < p.numLeaves) :
     ∃ s : Protocol X Y α,
       IsSubprotocol s p ∧ 3 * s.numLeaves ≥ p.numLeaves ∧

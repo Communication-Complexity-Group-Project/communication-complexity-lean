@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026 Lucy Horowitz, Timothe Kasriel, and Mihir Singhal. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Lucy Horowitz, Timothe Kasriel, Mihir Singhal
+-/
+
 import Mathlib.Data.Tree.Basic
 import CommunicationComplexity.Deterministic.Basic
 
@@ -48,8 +54,8 @@ private lemma tree_balanced_subtree_aux (t : Tree α) (n : ℕ) (hn : 1 < n)
       · obtain ⟨s, hs, hlb, hub⟩ := ih_r (by omega)
         exact ⟨s, hs.trans (TreeIsSubtree.right _ _ _ (TreeIsSubtree.refl _)), hlb, hub⟩
 
-/-- Lemma 1.8: every binary tree with > 1 leaves has a subtree with
-    between n/3 and 2n/3 leaves (where n = total leaves). -/
+/-- Every binary tree with more than one leaf has a subtree with between one third and two thirds
+of the total leaves. -/
 theorem tree_balanced_subtree (t : Tree α) (hn : 1 < t.numLeaves) :
     ∃ s : Tree α, TreeIsSubtree s t ∧ 3 * s.numLeaves ≥ t.numLeaves ∧
          3 * s.numLeaves < 2 * t.numLeaves := by

@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026 Lucy Horowitz, Timothe Kasriel, and Mihir Singhal. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Lucy Horowitz, Timothe Kasriel, Mihir Singhal
+-/
+
 import CommunicationComplexity.Basic
 import CommunicationComplexity.Rectangle.Basic
 import CommunicationComplexity.Deterministic.Subprotocol
@@ -365,7 +371,7 @@ theorem mono_partition_of_communicationComplexity_le
 
 /-- Rectangle lower-bound method: to prove `CC(g) ≥ n + 1`, it suffices to show
 every monochromatic rectangle partition of `g` has more than `2^n` parts. -/
-theorem communicationComplexity_lower_bound
+theorem le_communicationComplexity_of_forall_lt_ncard
     (g : X → Y → α) (n : ℕ)
     (h : ∀ Part : Set (Set (X × Y)),
       Rectangle.IsMonoPartition Part g →
@@ -403,7 +409,7 @@ theorem foolingSet_ncard_le_pow_of_communicationComplexity_le
 
 /-- Fooling-set lower bound: the deterministic communication complexity
 of `g` is at least `⌈log₂ |S|⌉` for every fooling set `S` of `g`. -/
-theorem foolingSet_lower_bound
+theorem clog_ncard_le_communicationComplexity
     (g : X → Y → α) (S : Set (X × Y))
     (hS : Rectangle.IsFoolingSet S g) :
     (Nat.clog 2 (Set.ncard S) : ENat) ≤ communicationComplexity g := by

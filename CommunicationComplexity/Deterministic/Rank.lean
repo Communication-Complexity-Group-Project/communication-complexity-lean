@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026 Lucy Horowitz, Timothe Kasriel, and Mihir Singhal. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Lucy Horowitz, Timothe Kasriel, Mihir Singhal
+-/
+
 import Mathlib.LinearAlgebra.Matrix.Rank
 import Mathlib.Data.Real.Basic
 import CommunicationComplexity.Basic
@@ -127,7 +133,7 @@ theorem boolFunctionRank_le_pow_of_communicationComplexity_le
 
 /-- Log-rank lower bound: the deterministic communication
 complexity of a Boolean function `f` is at least `⌈log₂(rank f)⌉`. -/
-theorem log_rank_lower_bound
+theorem clog_boolFunctionRank_le_communicationComplexity
     {X Y : Type*} [Finite X] [Fintype Y]
     (f : X → Y → Bool) :
     (Nat.clog 2 (boolFunctionRank f) : ENat) ≤

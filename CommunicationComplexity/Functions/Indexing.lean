@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026 Lucy Horowitz, Timothe Kasriel, and Mihir Singhal. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Lucy Horowitz, Timothe Kasriel, Mihir Singhal
+-/
+
 import CommunicationComplexity.Basic
 import CommunicationComplexity.Deterministic.Rectangle
 import CommunicationComplexity.Deterministic.OneWay
@@ -753,7 +759,7 @@ private lemma badInput_card_ge_half_of_small_cost
 /-- Deterministic distributional lower bound for indexing under the uniform input
 distribution: any one-way protocol of cost at most `n/10` (for `n ≥ 300`) has
 distributional error strictly bigger than `1/9`. -/
-theorem deterministicOneWayDistributionalLowerBound_one_ninth
+theorem one_ninth_lt_distributionalError_of_cost_le
     (hn300 : 300 ≤ (n : ℕ)) :
     ∀ (p : Deterministic.OneWay.Protocol (BoolInput n) (Fin n) Bool),
       p.cost ≤ (n : ℕ) / 10 →
@@ -774,39 +780,40 @@ def deterministicOneWayDistributionalLowerBound (ε : ℝ) (c : ℕ) : Prop :=
     p.cost ≤ c →
     p.distributionalError (μ := indexingInputDist n) (indexing n) > ε
 
-/-- Packaged form of `deterministicOneWayDistributionalLowerBound_one_ninth`
+/-- Packaged form of `one_ninth_lt_distributionalError_of_cost_le`
 using the repository's standard distributional-lower-bound predicate. -/
-theorem deterministicOneWayDistributionalLowerBound_one_ninth'
+theorem deterministicOneWayDistributionalLowerBound_one_ninth_of_large
     (hn300 : 300 ≤ (n : ℕ)) :
     deterministicOneWayDistributionalLowerBound n (1 / 9 : ℝ) ((n : ℕ) / 10) := by
   intro p hcost
-  exact deterministicOneWayDistributionalLowerBound_one_ninth (n := n) hn300 p hcost
+  exact one_ninth_lt_distributionalError_of_cost_le (n := n) hn300 p hcost
 
-/-- Setup lemma: any distributional lower bound against the uniform indexing
-distribution yields a one-way public-coin lower bound via minimax. -/
-theorem publicCoinOneWay_lower_bound_of_distributional
+/-- Any distributional lower bound against the uniform indexing distribution yields a one-way
+public-coin lower bound via minimax. -/
+theorem lt_publicCoinOneWay_communicationComplexity_of_distributionalLowerBound
     {ε : ℝ} {c : ℕ}
     (h : deterministicOneWayDistributionalLowerBound n ε c) :
     c < PublicCoin.OneWay.communicationComplexity (indexing n) ε := by
-  exact PublicCoin.OneWay.minimax_lower_bound
+  exact PublicCoin.OneWay.lt_communicationComplexity_of_forall_distributionalError_gt
     (f := indexing n) (ε := ε) (n := c) (μ := indexingInputDist n) h
 
-/-- Convenience specialization of `publicCoinOneWay_lower_bound_of_distributional`
-to the common constants used in the indexing proof skeleton. -/
-theorem publicCoinOneWay_linear_lower_bound
+/-- Specialization of
+`lt_publicCoinOneWay_communicationComplexity_of_distributionalLowerBound` to the common
+constants used in the indexing proof. -/
+theorem div_ten_lt_publicCoinOneWay_communicationComplexity_of_distributionalLowerBound
     (h : deterministicOneWayDistributionalLowerBound n (1 / 8 : ℝ) ((n : ℕ) / 10)) :
     ((((n : ℕ) / 10 : ℕ) : ENat)) <
       PublicCoin.OneWay.communicationComplexity (indexing n) (1 / 8 : ℝ) := by
-  exact publicCoinOneWay_lower_bound_of_distributional (n := n) h
+  exact lt_publicCoinOneWay_communicationComplexity_of_distributionalLowerBound (n := n) h
 
 /-- Linear public-coin one-way lower bound for indexing at error threshold `1/9`
 for all sufficiently large input lengths. -/
-theorem publicCoinOneWay_linear_lower_bound_one_ninth
+theorem div_ten_lt_publicCoinOneWay_communicationComplexity_one_ninth
     (hn300 : 300 ≤ (n : ℕ)) :
     ((((n : ℕ) / 10 : ℕ) : ENat)) <
       PublicCoin.OneWay.communicationComplexity (indexing n) (1 / 9 : ℝ) := by
-  exact publicCoinOneWay_lower_bound_of_distributional (n := n)
-    (deterministicOneWayDistributionalLowerBound_one_ninth' (n := n) hn300)
+  exact lt_publicCoinOneWay_communicationComplexity_of_distributionalLowerBound (n := n)
+    (deterministicOneWayDistributionalLowerBound_one_ninth_of_large (n := n) hn300)
 
 end Functions.Indexing
 

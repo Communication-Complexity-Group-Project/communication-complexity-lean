@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026 Lucy Horowitz, Timothe Kasriel, and Mihir Singhal. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Lucy Horowitz, Timothe Kasriel, Mihir Singhal
+-/
+
 import CommunicationComplexity.Basic
 import CommunicationComplexity.Helper
 import CommunicationComplexity.Deterministic.UpperBounds
@@ -53,7 +59,7 @@ is at least n + 1 (for n ≥ 1). Any monochromatic rectangle containing
 in any partition, which requires n + 1 bits. -/
 theorem le_communicationComplexity (n : ℕ) (hn : 1 ≤ n) :
     (n + 1 : ℕ) ≤ Deterministic.communicationComplexity (equality n) := by
-  apply Deterministic.communicationComplexity_lower_bound
+  apply Deterministic.le_communicationComplexity_of_forall_lt_ncard
   intro Part hPart
   -- Each (x,x) is in some rectangle in Part
   choose rect hrect_mem hrect_in using fun x =>

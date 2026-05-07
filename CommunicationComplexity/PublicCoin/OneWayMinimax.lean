@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026 Lucy Horowitz, Timothe Kasriel, and Mihir Singhal. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Lucy Horowitz, Timothe Kasriel, Mihir Singhal
+-/
+
 import CommunicationComplexity.PublicCoin.OneWay
 import CommunicationComplexity.FiniteProbabilitySpace
 import Mathlib.MeasureTheory.Integral.Bochner.Basic
@@ -84,7 +90,7 @@ open Classical in
 if some joint distribution `μ` forces every deterministic one-way protocol of
 cost at most `n` to have distributional error strictly greater than `ε`,
 then one-way public-coin communication complexity at error `ε` is greater than `n`. -/
-theorem minimax_lower_bound
+theorem lt_communicationComplexity_of_forall_distributionalError_gt
     {X Y α : Type*}
     (f : X → Y → α) (ε : ℝ) (n : ℕ)
     (μ : FiniteProbabilitySpace (X × Y))
