@@ -169,7 +169,7 @@ noncomputable instance uniformFin_isProbabilityMeasure :
 
 /-- Each coordinate has mass `1 / n` under the uniform law on `Fin n`. -/
 theorem uniformFin_singleton (i : Fin n) :
-    (uniformFin n : Measure (Fin n)).real {i} =
+    (uniformFin n).real {i} =
       (1 / (n : ℝ) : ℝ) := by
   rw [uniformFin]
   rw [Measure.real, ProbabilityTheory.uniformOn_univ]
@@ -178,7 +178,7 @@ theorem uniformFin_singleton (i : Fin n) :
 open Classical in
 /-- The uniform law on `Fin n` assigns mass by normalized cardinality. -/
 theorem uniformFin_real (S : Set (Fin n)) :
-    (uniformFin n : Measure (Fin n)).real S =
+    (uniformFin n).real S =
       (Fintype.card {i : Fin n // i ∈ S} : ℝ) / (n : ℝ) := by
   rw [uniformFin]
   rw [Measure.real, uniformOn_univ_measureReal_eq_card_subtype]
@@ -186,7 +186,7 @@ theorem uniformFin_real (S : Set (Fin n)) :
 
 /-- The uniform law on `Fin n` has total mass `1`. -/
 theorem uniformFin_univ :
-    (uniformFin n : Measure (Fin n)).real Set.univ = 1 := by
+    (uniformFin n).real Set.univ = 1 := by
   rw [uniformFin_real]
   simp
 
@@ -201,7 +201,7 @@ noncomputable instance uniformBool_isProbabilityMeasure :
 
 /-- Each bit has mass `1 / 2` under the uniform law on one bit. -/
 theorem uniformBool_singleton (b : Bool) :
-    (uniformBool : Measure Bool).real {b} =
+    uniformBool.real {b} =
       (1 / 2 : ℝ) := by
   rw [uniformBool]
   rw [Measure.real, ProbabilityTheory.uniformOn_univ]
@@ -210,7 +210,7 @@ theorem uniformBool_singleton (b : Bool) :
 open Classical in
 /-- The uniform law on `Bool` assigns mass by normalized cardinality. -/
 theorem uniformBool_real (S : Set Bool) :
-    (uniformBool : Measure Bool).real S =
+    uniformBool.real S =
       (Fintype.card {b : Bool // b ∈ S} : ℝ) / 2 := by
   rw [uniformBool]
   rw [Measure.real, uniformOn_univ_measureReal_eq_card_subtype]
@@ -218,7 +218,7 @@ theorem uniformBool_real (S : Set Bool) :
 
 /-- The uniform law on `Bool` has total mass `1`. -/
 theorem uniformBool_univ :
-    (uniformBool : Measure Bool).real Set.univ = 1 := by
+    uniformBool.real Set.univ = 1 := by
   rw [uniformBool_real]
   norm_num
 
@@ -246,8 +246,7 @@ open Classical in
 /-- Each generated disjoint coordinate vector has mass `3^{-n}` under the uniform law. -/
 theorem uniformDisjointCoordinateVector_singleton
     (coords : Fin n → DisjointCoordinate) :
-    (uniformDisjointCoordinateVector n :
-        Measure (Fin n → DisjointCoordinate)).real {coords} =
+    (uniformDisjointCoordinateVector n).real {coords} =
       (1 / (3 ^ (n : ℕ)) : ℝ) := by
   rw [uniformDisjointCoordinateVector]
   change ((ProbabilityTheory.uniformOn Set.univ :
@@ -275,8 +274,7 @@ open Classical in
 /-- The uniform law on disjoint-coordinate vectors assigns mass by normalized cardinality. -/
 theorem uniformDisjointCoordinateVector_real
     (S : Set (Fin n → DisjointCoordinate)) :
-    (uniformDisjointCoordinateVector n :
-        Measure (Fin n → DisjointCoordinate)).real S =
+    (uniformDisjointCoordinateVector n).real S =
       (Fintype.card {coords : Fin n → DisjointCoordinate // coords ∈ S} : ℝ) /
         (3 ^ (n : ℕ) : ℝ) := by
   rw [uniformDisjointCoordinateVector]
@@ -285,16 +283,14 @@ theorem uniformDisjointCoordinateVector_real
 
 /-- The uniform law on disjoint-coordinate vectors has total mass `1`. -/
 theorem uniformDisjointCoordinateVector_univ :
-    (uniformDisjointCoordinateVector n :
-        Measure (Fin n → DisjointCoordinate)).real Set.univ = 1 := by
+    (uniformDisjointCoordinateVector n).real Set.univ = 1 := by
   rw [uniformDisjointCoordinateVector_real]
   simp [Fintype.card_pi, DisjointCoordinate.card]
 
 open Classical in
 /-- Each disjoint coordinate has mass `1 / 3` under the one-coordinate uniform law. -/
 theorem uniformDisjointCoordinate_singleton (c : DisjointCoordinate) :
-    (uniformDisjointCoordinate :
-        Measure DisjointCoordinate).real {c} = (1 / 3 : ℝ) := by
+    uniformDisjointCoordinate.real {c} = (1 / 3 : ℝ) := by
   rw [uniformDisjointCoordinate]
   change ((ProbabilityTheory.uniformOn Set.univ :
       Measure DisjointCoordinate) ({c} : Set DisjointCoordinate)).toReal = (1 / 3 : ℝ)
@@ -1319,16 +1315,16 @@ probabilities of events depending separately on the four fields. -/
 theorem hardSample_measureReal_fieldProduct
     (TSet : Set (Fin n)) (XSet YSet : Set Bool)
     (OtherSet : Set (Fin n → DisjointCoordinate)) :
-    (volume : Measure (HardSample n)).real
-        {ω | ω.T ∈ TSet ∧ ω.xT ∈ XSet ∧ ω.yT ∈ YSet ∧ ω.other ∈ OtherSet} =
-      (uniformFin n : Measure (Fin n)).real TSet *
-        (uniformBool : Measure Bool).real XSet *
-          (uniformBool : Measure Bool).real YSet *
-            (uniformDisjointCoordinateVector n :
-              Measure (Fin n → DisjointCoordinate)).real OtherSet := by
+    volume.real
+        {ω : HardSample n |
+          ω.T ∈ TSet ∧ ω.xT ∈ XSet ∧ ω.yT ∈ YSet ∧ ω.other ∈ OtherSet} =
+      (uniformFin n).real TSet *
+        uniformBool.real XSet *
+          uniformBool.real YSet *
+            (uniformDisjointCoordinateVector n).real OtherSet := by
   let sampleEvent : Set (HardSample n) :=
     {ω | ω.T ∈ TSet ∧ ω.xT ∈ XSet ∧ ω.yT ∈ YSet ∧ ω.other ∈ OtherSet}
-  change (volume : Measure (HardSample n)).real sampleEvent = _
+  change volume.real sampleEvent = _
   change ((ProbabilityTheory.uniformOn Set.univ : Measure (HardSample n)).real sampleEvent) = _
   rw [Measure.real, uniformOn_univ_measureReal_eq_card_subtype]
   rw [show
@@ -1652,7 +1648,6 @@ theorem disjointSpecialYFalseMeasure_isProbabilityMeasure :
   rw [disjointCondMeasure_measureReal_specialY_false]
   norm_num
 
-open Classical in
 /-- Under `D ∧ Y_T=false`, Alice's special bit is uniform. -/
 theorem disjointSpecialYFalseMeasure_measureReal_specialX_singleton (b : Bool) :
     (disjointSpecialYFalseMeasure n).real ((specialX n) ⁻¹' {b}) = (1 / 2 : ℝ) := by
@@ -1664,7 +1659,7 @@ theorem disjointSpecialYFalseMeasure_measureReal_specialX_singleton (b : Bool) :
     disjointCondMeasure_measureReal_specialY_false n
   cases b
   · have hinter :
-        ((specialY n) ⁻¹' {false} : Set (HardSample n)) ∩ ((specialX n) ⁻¹' {false}) =
+        (specialY n) ⁻¹' {false} ∩ ((specialX n) ⁻¹' {false}) =
           specialZeroZero n := by
       ext ω
       rcases ω with ⟨T, xT, yT, other⟩
@@ -1672,7 +1667,7 @@ theorem disjointSpecialYFalseMeasure_measureReal_specialX_singleton (b : Bool) :
     rw [hinter, disjointCondMeasure_measureReal_specialZeroZero, hden]
     norm_num
   · have hinter :
-        ((specialY n) ⁻¹' {false} : Set (HardSample n)) ∩ ((specialX n) ⁻¹' {true}) =
+        (specialY n) ⁻¹' {false} ∩ ((specialX n) ⁻¹' {true}) =
           specialBitsEvent n true false := by
       ext ω
       rcases ω with ⟨T, xT, yT, other⟩
@@ -1727,14 +1722,9 @@ theorem card_disjointModel_fiber_for_specialCoordinate_coordinateVector
         {z : Fin n × (Fin n → DisjointCoordinate) × DisjointCoordinate //
           z.1 = i ∧ z.2.1 = coords} =
       3 := by
-  calc
-    Fintype.card
-        {z : Fin n × (Fin n → DisjointCoordinate) × DisjointCoordinate //
-          z.1 = i ∧ z.2.1 = coords} =
-        Fintype.card DisjointCoordinate :=
-      Fintype.card_congr
-        (disjointModelFiberForSpecialCoordinateCoordinateVectorEquiv n i coords)
-    _ = 3 := DisjointCoordinate.card
+  rw [Fintype.card_congr
+        (disjointModelFiberForSpecialCoordinateCoordinateVectorEquiv n i coords)]
+  exact DisjointCoordinate.card
 
 open Classical in
 /-- Under the disjoint-conditioned distribution, the pair of the special coordinate and the
@@ -1744,7 +1734,7 @@ theorem disjointCondMeasure_measureReal_specialCoordinate_disjointCoordinateVect
     (disjointCondMeasure n).real
         (((specialCoordinate n) ⁻¹' {i}) ∩
           ((disjointCoordinateVector n) ⁻¹' {coords})) =
-      (1 / ((n : ℝ) * 3 ^ (n : ℕ)) : ℝ) := by
+      (1 / (n * 3 ^ (n : ℕ)) : ℝ) := by
   have hpre :=
     FiniteMeasureSpace.measureReal_preimage_eq_sum_fibers
       (Ω := HardSample n)
@@ -1752,11 +1742,11 @@ theorem disjointCondMeasure_measureReal_specialCoordinate_disjointCoordinateVect
       (disjointCondMeasure n) (disjointModel n) (fun z => z.1 = i ∧ z.2.1 = coords)
   change (disjointCondMeasure n).real
       {ω | (disjointModel n ω).1 = i ∧ (disjointModel n ω).2.1 = coords} =
-    (1 / ((n : ℝ) * 3 ^ (n : ℕ)) : ℝ)
+    (1 / (n * 3 ^ (n : ℕ)) : ℝ)
   rw [hpre]
   have hfiber (z : Fin n × (Fin n → DisjointCoordinate) × DisjointCoordinate) :
       (disjointCondMeasure n).real ((disjointModel n) ⁻¹' {z}) =
-        (1 / ((n : ℝ) * 3 ^ (n : ℕ) * 3) : ℝ) := by
+        (1 / (n * 3 ^ (n : ℕ) * 3) : ℝ) := by
     exact disjointCondMeasure_measureReal_disjointModel_fiber n z
   simp_rw [hfiber]
   rw [Finset.sum_ite]
@@ -1772,17 +1762,16 @@ open Classical in
 /-- The uniform law on disjoint coordinate vectors is the product of the one-coordinate uniform
 laws. -/
 theorem uniformDisjointCoordinateVector_eq_pi :
-    (uniformDisjointCoordinateVector n : Measure (Fin n → DisjointCoordinate)) =
+    uniformDisjointCoordinateVector n =
       Measure.pi
-        (fun _ : Fin n =>
-          (uniformDisjointCoordinate : Measure DisjointCoordinate)) := by
+        (fun _ : Fin n => uniformDisjointCoordinate) := by
   rw [MeasureTheory.ext_iff_measureReal_singleton]
   intro coords
   rw [uniformDisjointCoordinateVector_singleton]
   rw [Measure.real, Measure.pi_singleton, ENNReal.toReal_prod]
   change (1 / 3 ^ (n : ℕ) : ℝ) =
     ∏ i : Fin n,
-      (uniformDisjointCoordinate : Measure DisjointCoordinate).real {coords i}
+      uniformDisjointCoordinate.real {coords i}
   simp_rw [uniformDisjointCoordinate_singleton]
   rw [Finset.prod_const, Finset.card_univ, Fintype.card_fin]
   simp [one_div, inv_pow]
@@ -1916,8 +1905,7 @@ open Classical in
 law. -/
 theorem uniformDisjointCoordinateVector_measure_condBit_ne_zero
     (i k : Fin n) (b : Bool) :
-    (uniformDisjointCoordinateVector n : Measure (Fin n → DisjointCoordinate))
-      ((coordinateAliceCondBit n i k) ⁻¹' {b}) ≠ 0 := by
+    uniformDisjointCoordinateVector n ((coordinateAliceCondBit n i k) ⁻¹' {b}) ≠ 0 := by
   rw [← MeasureTheory.measureReal_ne_zero_iff]
   let coords : Fin n → DisjointCoordinate :=
     Function.update (fun _ => DisjointCoordinate.neither) k (coordinateWithCondBit n i k b)
@@ -1931,13 +1919,11 @@ theorem uniformDisjointCoordinateVector_measure_condBit_ne_zero
     subst coords'
     exact hmem
   have hsingle_pos :
-      0 < (uniformDisjointCoordinateVector n :
-          Measure (Fin n → DisjointCoordinate)).real ({coords} : Set _) := by
+      0 < (uniformDisjointCoordinateVector n).real ({coords} : Set _) := by
     rw [uniformDisjointCoordinateVector_singleton]
     positivity
   have hle :=
-    measureReal_mono (μ := (uniformDisjointCoordinateVector n :
-      Measure (Fin n → DisjointCoordinate))) hsubset
+    measureReal_mono (μ := uniformDisjointCoordinateVector n) hsubset
   exact ne_of_gt (hsingle_pos.trans_le hle)
 
 open Classical in
@@ -2101,8 +2087,7 @@ theorem identDistrib_specialCoordinate_disjointCoordinateVector_uniform_prod :
       (fun ω : HardSample n => (specialCoordinate n ω, disjointCoordinateVector n ω))
       id
       (disjointCondMeasure n)
-      ((uniformFin n : Measure (Fin n)).prod
-        (uniformDisjointCoordinateVector n : Measure (Fin n → DisjointCoordinate))) := by
+      ((uniformFin n).prod (uniformDisjointCoordinateVector n)) := by
   refine ⟨Measurable.of_discrete.aemeasurable, measurable_id.aemeasurable, ?_⟩
   rw [Measure.map_id]
   rw [MeasureTheory.ext_iff_measureReal_singleton]
@@ -2117,8 +2102,7 @@ theorem identDistrib_specialCoordinate_disjointCoordinateVector_uniform_prod :
         simp]
   rw [disjointCondMeasure_measureReal_specialCoordinate_disjointCoordinateVector_fiber]
   have hprod :
-      ((uniformFin n : Measure (Fin n)).prod
-        (uniformDisjointCoordinateVector n : Measure (Fin n → DisjointCoordinate))).real
+      ((uniformFin n).prod (uniformDisjointCoordinateVector n)).real
           ({(i, coords)} : Set (Fin n × (Fin n → DisjointCoordinate))) =
         (1 / (n : ℝ)) * (1 / (3 ^ (n : ℕ) : ℝ)) := by
     rw [Measure.real]
@@ -2143,8 +2127,7 @@ theorem identDistrib_uniformProd_snd_uniformDisjointCoordinateVector :
     IdentDistrib
       Prod.snd
       id
-      ((uniformFin n : Measure (Fin n)).prod
-        (uniformDisjointCoordinateVector n : Measure (Fin n → DisjointCoordinate)))
+      ((uniformFin n).prod (uniformDisjointCoordinateVector n))
       (uniformDisjointCoordinateVector n) := by
   refine ⟨Measurable.of_discrete.aemeasurable, measurable_id.aemeasurable, ?_⟩
   rw [Measure.map_id, Measure.map_snd_prod]
@@ -2157,8 +2140,7 @@ theorem identDistrib_disjointCoordinateVector_uniform :
       (uniformDisjointCoordinateVector n) := by
   have hprod_snd :
       IdentDistrib (disjointCoordinateVector n) Prod.snd (disjointCondMeasure n)
-        ((uniformFin n : Measure (Fin n)).prod
-          (uniformDisjointCoordinateVector n : Measure (Fin n → DisjointCoordinate))) := by
+        ((uniformFin n).prod (uniformDisjointCoordinateVector n)) := by
     simpa [Function.comp_def] using
       (identDistrib_specialCoordinate_disjointCoordinateVector_uniform_prod n).comp
         (Measurable.of_discrete
@@ -2173,13 +2155,10 @@ theorem identDistrib_uniformProd_snd_uniformDisjointCoordinateVector_cond_fst
     IdentDistrib
       Prod.snd
       id
-      (((uniformFin n : Measure (Fin n)).prod
-        (uniformDisjointCoordinateVector n :
-          Measure (Fin n → DisjointCoordinate)))[|Prod.fst ⁻¹' ({i} : Set (Fin n))])
+      (((uniformFin n).prod (uniformDisjointCoordinateVector n))[|
+        Prod.fst ⁻¹' ({i} : Set (Fin n))])
       (uniformDisjointCoordinateVector n) := by
-  let ρ : Measure (Fin n × (Fin n → DisjointCoordinate)) :=
-    (uniformFin n : Measure (Fin n)).prod
-      (uniformDisjointCoordinateVector n : Measure (Fin n → DisjointCoordinate))
+  let ρ := (uniformFin n).prod (uniformDisjointCoordinateVector n)
   refine ⟨Measurable.of_discrete.aemeasurable, measurable_id.aemeasurable, ?_⟩
   rw [Measure.map_id]
   rw [MeasureTheory.ext_iff_measureReal_singleton]
@@ -2219,7 +2198,7 @@ theorem identDistrib_uniformProd_snd_uniformDisjointCoordinateVector_cond_fst
       ρ.real
         (Prod.fst ⁻¹' ({i} : Set (Fin n)) ∩
           Prod.snd ⁻¹' ({coords} : Set (Fin n → DisjointCoordinate))) =
-    (uniformDisjointCoordinateVector n : Measure (Fin n → DisjointCoordinate)).real {coords}
+    (uniformDisjointCoordinateVector n).real {coords}
   rw [hden, hnum, uniformDisjointCoordinateVector_singleton]
   have hn : (n : ℝ) ≠ 0 := by positivity
   have hpow : (3 ^ (n : ℕ) : ℝ) ≠ 0 := by positivity
@@ -2266,8 +2245,7 @@ theorem identDistrib_disjointCoordinateVector_uniform_cond_specialCoordinate (i 
       ((disjointCondMeasure n)[|specialCoordinate n ← i])
       (uniformDisjointCoordinateVector n) := by
   let ρ : Measure (Fin n × (Fin n → DisjointCoordinate)) :=
-    (uniformFin n : Measure (Fin n)).prod
-      (uniformDisjointCoordinateVector n : Measure (Fin n → DisjointCoordinate))
+    (uniformFin n).prod (uniformDisjointCoordinateVector n)
   have hpair :
       IdentDistrib
         (fun ω : HardSample n => (disjointCoordinateVector n ω, specialCoordinate n ω))
@@ -2341,7 +2319,7 @@ theorem volume_measureReal_singleton_dualHardSample (ω : HardSample n) :
 /-- Hard-sample duality preserves the uniform hard-sample measure. -/
 theorem volume_measurePreserving_dualHardSample :
     MeasurePreserving (dualHardSample n)
-      (volume : Measure (HardSample n)) (volume : Measure (HardSample n)) := by
+      volume volume := by
   refine ⟨Measurable.of_discrete, ?_⟩
   rw [MeasureTheory.ext_iff_measureReal_singleton]
   intro ω
@@ -2403,7 +2381,7 @@ theorem disjointCondMeasure_measurePreserving_dualHardSample :
 under the hard distribution first conditioned on disjointness. -/
 theorem volume_cond_eq_disjointCondMeasure_cond_of_subset_disjointEvent
     {A : Set (HardSample n)} (hA : A ⊆ disjointEvent n) :
-    (volume : Measure (HardSample n))[|A] = (disjointCondMeasure n)[|A] := by
+    volume[|A] = (disjointCondMeasure n)[|A] := by
   rw [disjointCondMeasure]
   rw [ProbabilityTheory.cond_cond_eq_cond_inter
     MeasurableSet.of_discrete MeasurableSet.of_discrete volume]
@@ -2666,10 +2644,10 @@ theorem disjointSpecialYFalseMeasure_specialX_law_eq_uniformBool :
 
 /-- The uniform law on one bit has full support. -/
 theorem uniformBool_toPMF_ne_zero (b : Bool) :
-    (uniformBool : Measure Bool).toPMF b ≠ 0 := by
+    uniformBool.toPMF b ≠ 0 := by
   intro hb
   have hreal :
-      ((uniformBool : Measure Bool).toPMF b).toReal =
+      (uniformBool.toPMF b).toReal =
         (1 / 2 : ℝ) := by
     simpa [Measure.toPMF_apply, Measure.real] using uniformBool_singleton b
   rw [hb] at hreal
@@ -2686,7 +2664,7 @@ noncomputable instance uniformBoolPair_isProbabilityMeasure :
 
 /-- Each bit-pair has mass `1 / 4` under the uniform law on two bits. -/
 theorem uniformBoolPair_singleton (b : Bool × Bool) :
-    (uniformBoolPair : Measure (Bool × Bool)).real {b} =
+    uniformBoolPair.real {b} =
       (1 / 4 : ℝ) := by
   rw [uniformBoolPair]
   rw [Measure.real, ProbabilityTheory.uniformOn_univ]
@@ -2694,25 +2672,24 @@ theorem uniformBoolPair_singleton (b : Bool × Bool) :
 
 /-- The uniform law on two bits is the product of the one-bit uniform laws. -/
 theorem uniformBoolPair_eq_prod :
-    (uniformBoolPair : Measure (Bool × Bool)) =
-      (uniformBool : Measure Bool).prod (uniformBool : Measure Bool) := by
+    uniformBoolPair =
+      uniformBool.prod uniformBool := by
   rw [MeasureTheory.ext_iff_measureReal_singleton]
   intro b
   rw [uniformBoolPair_singleton]
   rcases b with ⟨bx, bY⟩
   change (1 / 4 : ℝ) =
-    ((uniformBool : Measure Bool).prod
-        (uniformBool : Measure Bool) ({(bx, bY)})).toReal
+    (uniformBool.prod uniformBool ({(bx, bY)})).toReal
   rw [show ({(bx, bY)} : Set (Bool × Bool)) = ({bx} : Set Bool) ×ˢ ({bY} : Set Bool) by
     ext p
     simp [Prod.ext_iff]]
   rw [Measure.prod_prod, ENNReal.toReal_mul]
   have hx :
-      ((uniformBool : Measure Bool) ({bx} : Set Bool)).toReal =
+      (uniformBool ({bx} : Set Bool)).toReal =
         (1 / 2 : ℝ) := by
     simpa [Measure.real] using uniformBool_singleton bx
   have hy :
-      ((uniformBool : Measure Bool) ({bY} : Set Bool)).toReal =
+      (uniformBool ({bY} : Set Bool)).toReal =
         (1 / 2 : ℝ) := by
     simpa [Measure.real] using uniformBool_singleton bY
   rw [hx, hy]
@@ -3704,7 +3681,7 @@ theorem xFiberKL_eq_cond_specialYFalse_klDiv
     xFiberKL n p z =
       (InformationTheory.klDiv
         (Measure.map (specialX n) ((zFiberMeasure n p z)[|(specialY n) ⁻¹' {false}]))
-        (uniformBool : Measure Bool)).toReal := by
+        uniformBool).toReal := by
   rw [xFiberKL]
   rw [conditionalSpecialXLaw_eq_cond_specialYFalse n p z hY]
 
@@ -3719,7 +3696,7 @@ theorem xFiberKL_eq_disjointSpecialYFalseMeasure_cond_zVariable_klDiv
       (InformationTheory.klDiv
         (Measure.map (specialX n)
           ((disjointSpecialYFalseMeasure n)[|zVariable n p ← z]))
-        (uniformBool : Measure Bool)).toReal := by
+        uniformBool).toReal := by
   rw [xFiberKL_eq_cond_specialYFalse_klDiv n p z hY]
   rw [zFiberMeasure_cond_specialYFalse_eq_disjointSpecialYFalseMeasure_cond_zVariable]
 
@@ -3734,7 +3711,7 @@ theorem xFiberKL_eq_disjointSpecialYFalseMeasure_cond_zVariable_klDiv_of_ne_zero
       (InformationTheory.klDiv
         (Measure.map (specialX n)
           ((disjointSpecialYFalseMeasure n)[|zVariable n p ← z]))
-        (uniformBool : Measure Bool)).toReal := by
+        uniformBool).toReal := by
   exact xFiberKL_eq_disjointSpecialYFalseMeasure_cond_zVariable_klDiv n p z
     (zFiberMeasure_specialYFalse_ne_zero_of_disjointSpecialYFalseMeasure_ne_zero n p z hz)
 
@@ -4367,20 +4344,20 @@ law is the mutual information between `X_T` and the full `Z=(M,T,X_<T,Y_>T)` var
 theorem condKLDiv_specialX_zVariable_eq_mutualInfo_zVariable
     (p : ProtocolType n) :
     condKLDiv (specialX n) id (zVariable n p) (disjointSpecialYFalseMeasure n)
-        (uniformBool : Measure Bool) =
+        uniformBool =
       I[specialX n : zVariable n p ; disjointSpecialYFalseMeasure n] := by
   haveI : IsProbabilityMeasure (disjointSpecialYFalseMeasure n) :=
     disjointSpecialYFalseMeasure_isProbabilityMeasure n
   have hmap : Measure.map (specialX n) (disjointSpecialYFalseMeasure n) =
-      (uniformBool : Measure Bool) := by
+      uniformBool := by
     exact disjointSpecialYFalseMeasure_specialX_law_eq_uniformBool n
   have hKL0 :
       KL[specialX n ; disjointSpecialYFalseMeasure n # id ;
-        (uniformBool : Measure Bool)] = 0 := by
+        uniformBool] = 0 := by
     simp [KLDiv, hmap]
   have hcond := condKLDiv_eq
     (μ := disjointSpecialYFalseMeasure n)
-    (μ' := (uniformBool : Measure Bool))
+    (μ' := uniformBool)
     (X := specialX n) (Y := id) (Z := zVariable n p)
     Measurable.of_discrete Measurable.of_discrete
     (fun b hb => False.elim (uniformBool_toPMF_ne_zero b (by
@@ -4429,7 +4406,7 @@ theorem integral_xFiberKL_disjointSpecialYFalse_eq_sum_zVariable_klDiv
           (InformationTheory.klDiv
             (Measure.map (specialX n)
               ((disjointSpecialYFalseMeasure n)[|zVariable n p ← z]))
-            (uniformBool : Measure Bool)).toReal := by
+            uniformBool).toReal := by
   rw [integral_xFiberKL_disjointSpecialYFalse_eq_sum_zVariable]
   apply Finset.sum_congr rfl
   intro z _
@@ -4444,7 +4421,7 @@ theorem integral_xFiberKL_disjointSpecialYFalse_eq_condKLDiv_zVariable
     (p : ProtocolType n) :
     (∫ ω, xFiberKL n p (zVariable n p ω) ∂(disjointSpecialYFalseMeasure n)) =
       condKLDiv (specialX n) id (zVariable n p) (disjointSpecialYFalseMeasure n)
-        (uniformBool : Measure Bool) := by
+        uniformBool := by
   haveI : IsProbabilityMeasure (disjointSpecialYFalseMeasure n) :=
     disjointSpecialYFalseMeasure_isProbabilityMeasure n
   rw [integral_xFiberKL_disjointSpecialYFalse_eq_sum_zVariable_klDiv]
@@ -4500,7 +4477,7 @@ theorem volume_measureReal_singleton_flipSpecialX (ω : HardSample n) :
 
 theorem volume_measurePreserving_flipSpecialX :
     MeasurePreserving (flipSpecialX n)
-      (volume : Measure (HardSample n)) (volume : Measure (HardSample n)) := by
+      volume volume := by
   refine ⟨Measurable.of_discrete, ?_⟩
   rw [MeasureTheory.ext_iff_measureReal_singleton]
   intro ω
